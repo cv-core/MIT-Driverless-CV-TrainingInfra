@@ -11,7 +11,7 @@ sudo ln -s /usr/bin/g++-5 g++
 
 cd ~
 git clone git@github.com:cv-core/PerceptionCV.git 
-cd ~/PerceptionCV/CVC-YOLOv3
+cd ~/PerceptionCV/CVC-YOLOv3/
 sudo python3 setup.py build develop
 echo 'PYTHONPATH=$PYTHONPATH:/home/$USER/PerceptionCV/CVC-YOLOv3/utils/' >> ~/.bashrc
 echo 'cd ~/PerceptionCV/CVC-YOLOv3' >> ~/.bashrc
