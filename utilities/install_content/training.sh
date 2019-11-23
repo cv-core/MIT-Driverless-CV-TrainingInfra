@@ -10,8 +10,8 @@ sudo ln -s /usr/bin/gcc-5 gcc
 sudo ln -s /usr/bin/g++-5 g++
 
 cd ~
-git clone git@github.com:DUT-Racing/DUT18D_PerceptionCV.git
-cd ~/DUT18D_PerceptionCV/vectorized_yolov3/
+git clone git@github.com:cv-core/PerceptionCV.git 
+cd ~/PerceptionCV/CVC-YOLOv3
 sudo python3 setup.py build develop
-echo 'PYTHONPATH=$PYTHONPATH:/home/$USER/DUT18D_PerceptionCV/vectorized_yolov3/utils/' >> ~/.bashrc
-echo 'cd ~/DUT18D_PerceptionCV/vectorized_yolov3' >> ~/.bashrc
+echo 'PYTHONPATH=$PYTHONPATH:/home/$USER/PerceptionCV/CVC-YOLOv3/utils/' >> ~/.bashrc
+echo 'cd ~/PerceptionCV/CVC-YOLOv3' >> ~/.bashrc

@@ -12,7 +12,7 @@ cat ~/.ssh/id_rsa.pub
 echo
 echo "The sshkey is shown above"
 read -p "Press [Enter] key to start backup once you have added it to your keys page, if you do not then things will not work..."
-git remote set-url origin git@github.com:DUT-Racing/DUT18D_PerceptionCV.git
+git remote set-url origin git@github.com:cv-core/PerceptionCV.git
 git config --global user.name "$name"
 git config --global user.email "$email"
 git config --global core.editor vim
