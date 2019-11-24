@@ -9,3 +9,11 @@ BibTex Citation link will be given once the paper has been accepted
 Abstract
 
 >Autonomous  racing  provides  the  opportunity  totest safety-critical perception pipelines at their limit. This paperdescribes  the  practical  challenges  and  solutions  to  applyingstate-of-the-art  computer  vision  algorithms  to  build  a  low-latency, high-accuracy perception system for DUT18 Driverless(DUT18D),  a  4WD  electric  race  car  with  podium  finishes  atall  Formula  Driverless  competitions  for  which  it  raced.  Thekey  components  of  DUT18D  include  YOLOv3-based  objectdetection, pose estimation and time synchronization on its dualstereovision/monovision  camera  setup.  We  highlight  modifica-tions  required  to  adapt  perception  CNNs  to  racing  domains,improvements  to  loss  functions  used  for  pose  estimation,  andmethodologies   for   sub-microsecond   camera   synchronizationamong  other  improvements.  We  perform  an  extensive  exper-imental  evaluation  of  the  system,  demonstrating  its  accuracyand  low-latency  in  real-world  racing  scenarios.
+
+## CVC-YOLOv3
+
+placeholder
+
+## RektNet
+
+placeholder
