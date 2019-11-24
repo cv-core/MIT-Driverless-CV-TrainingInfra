@@ -13,8 +13,6 @@ import sys
 import copy
 from utils import vis_kpt_and_up2gcp, vis_hm_and_up2gcp, prep_image, prep_label, get_scale, scale_labels
 
-sys.path.insert(1, os.path.realpath(os.path.pardir+'/vectorized_yolov3/utils'))
-
 def print_tensor_stats(x, name):
     flattened_x = x.cpu().detach().numpy().flatten()
     avg = sum(flattened_x)/len(flattened_x)

@@ -8,8 +8,6 @@ import sys
 import shutil
 from utils import vis_tensor_and_up2gcp, prep_image
 
-sys.path.insert(1, os.path.realpath(os.path.pardir+'/vectorized_yolov3/utils'))
-import storage_client
 from keypoint_net import KeypointNet
 
 detection_tmp_path = "/tmp/detect/"
@@ -18,28 +16,18 @@ if os.path.exists(detection_tmp_path):
     shutil.rmtree(detection_tmp_path)  # delete output folder
 os.makedirs(detection_tmp_path)  # make new output folder
 
-def download_file(file_uri):
-    os_filepath = storage_client.get_file(file_uri)
-    if not os.path.isfile(os_filepath):
-        raise Exception("could not download image: {file_uri}".format(file_uri=file_uri))
-    return os_filepath
 
 def main(model,img,img_size,output,flip,rotate):
 
     output_path = output
 
     model_path = model
-    if model_path.startswith('gs'):
-        model_filepath = download_file(model_path)
-    else:
-        model_filepath = model_path
+
+    model_filepath = model_path
 
     image_path = img
 
-    if image_path.startswith('gs'):
-        image_filepath = download_file(image_path)
-    else:
-        image_filepath = image_path
+    image_filepath = image_path
 
     img_name = '_'.join(image_filepath.split('/')[-1].split('.')[0].split('_')[-5:])
 
@@ -65,7 +53,7 @@ def main(model,img,img_size,output,flip,rotate):
         chan /= cmax - cmin
         out = np.concatenate((out, chan), axis=0)
     cv2.imwrite(detection_tmp_path + img_name + "_hm.jpg", out * 255)
-    storage_client.upload_file(detection_tmp_path + img_name + "_hm.jpg", output_path + img_name + "_hm.jpg")
+    print(f'please check the output image here: {detection_tmp_path + img_name + "_hm.jpg", out * 255}')
 
 
     image = cv2.imread(image_filepath)

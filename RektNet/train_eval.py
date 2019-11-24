@@ -25,8 +25,6 @@ from cross_ratio_loss import CrossRatioLoss
 from utils import Logger
 from utils import load_train_csv_dataset, prep_image, visualize_data, vis_tensor_and_up2gcp, load_imgs_csv, calculate_distance, calculate_mean_distance
 from dataset import ConeDataset
-sys.path.insert(1, os.path.realpath(os.path.pardir+'/vectorized_yolov3/utils'))
-import storage_client
 
 cv2.setRNGSeed(17)
 torch.manual_seed(17)
@@ -98,7 +96,8 @@ def train_model(model, dataloader, loss_function, optimizer, scheduler, epochs, 
                     onnx_model.load_state_dict(model.state_dict())
                     torch.onnx.export(onnx_model, torch.randn(1, 3, input_size[0], input_size[1]), tmpfile.name)
                     print(f"Saving ONNX model to {onnx_uri}")
-                    storage_client.upload_file(tmpfile.name, onnx_uri, use_cache=False)
+                    #TO-DO: Make it save to local
+                    # storage_client.upload_file(tmpfile.name, onnx_uri, use_cache=False)
                 best_model = copy.deepcopy(model)
         else:
             tolerance += 1
@@ -112,7 +111,8 @@ def train_model(model, dataloader, loss_function, optimizer, scheduler, epochs, 
                               'model': model.state_dict(),
                               'optimizer': optimizer.state_dict()}
                 torch.save(checkpoint, tmpfile.name)
-                storage_client.upload_file(tmpfile.name, gs_pt_uri, use_cache=False)
+                #TO-DO: Make it save to local
+                # storage_client.upload_file(tmpfile.name, gs_pt_uri, use_cache=False)
         if tolerance >= max_tolerance:
             print(f"Training is stopped due; loss no longer decreases. Epoch {best_epoch} is has the best validation loss.")
 
