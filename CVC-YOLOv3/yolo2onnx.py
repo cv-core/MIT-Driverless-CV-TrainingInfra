@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from __future__ import print_function
 from collections import OrderedDict
@@ -21,7 +21,7 @@ class DarkNetParser(object):
 
     def parse_cfg_file(self, cfg_file_path):
         with open(cfg_file_path, 'rb') as cfg_file:
-            remainder = cfg_file.read()
+            remainder = cfg_file.read().decode()
             while remainder is not None:
                 # This gets all the info from that layer and returns the remaining layers
                 layer_dict, layer_name, remainder = self._next_layer(remainder)
@@ -642,7 +642,7 @@ def do_everything(cfg_name, weights_name):
     output_tensor_dims = OrderedDict()
     countt = 0
     for namE in pre_yolo_names:
-        output_tensor_dims[pre_yolo_names[countt]] = [yolo_filts[countt], img_w / yolo_scales[countt], img_h / yolo_scales[countt]]
+        output_tensor_dims[pre_yolo_names[countt]] = [yolo_filts[countt], int(img_w/yolo_scales[countt]), int(img_h/yolo_scales[countt])]
         countt += 1
 
     # Create a GraphBuilderONNX object with the known output tensor dimensions:
@@ -667,9 +667,12 @@ def do_everything(cfg_name, weights_name):
 
 if __name__ == "__main__":
 
-    p = optparse.OptionParser()
+    p = optparse.OptionParser(usage="%prog --cfg_name [cfg_name] --weights_name [weights_name]")
     p.add_option("--cfg_name", action="store", dest='cfg_name', help="Path to CFG file")
     p.add_option("--weights_name", action="store", dest='weights_name', help="Path to weights file")
     options, args = p.parse_args()
+
+    if options.cfg_name is None or options.weights_name is None:
+        p.error('CFG file and weights file must be provided')
 
     do_everything(options.cfg_name, options.weights_name)
