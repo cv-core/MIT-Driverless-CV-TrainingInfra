@@ -12,7 +12,7 @@ Abstract
 
 ## CVC-YOLOv3
 
-This is the MIT Driverless Custom implementation of YOLOv3. 
+CVC-YOLOv3 is the MIT Driverless Custom implementation of YOLOv3. 
 
 One of our main contributions to vanilla YOLOv3 is the custom data loader we implemented:
 
@@ -22,8 +22,8 @@ Each set of training images from a specific sensor/lens/perspective combination 
 <img src="https://user-images.githubusercontent.com/22118253/69765465-09e90000-1142-11ea-96b7-370868a0033b.png" width="400">
 </p>
 
-Our final accuracy metrics for detecting traffic cones on the racing track is:
 
+Our final accuracy metrics for detecting traffic cones on the racing track:
 ```
 mAP: 89.35%     Recall: 92.77%     Precision: 86.94%      
 ```
@@ -32,8 +32,22 @@ mAP: 89.35%     Recall: 92.77%     Precision: 86.94%
 
 
 
-Training dataset including annotation for *Formula Student Driverless* is also open-sourced here(hyperlink)
+CVC-YOLOv3 Training dataset including annotation for *Formula Student Driverless Standard* is open-sourced here(hyperlink)
 
 ## RektNet
 
-placeholder
+RektNet is the MIT Driverless Custom Key Points Detection Network. 
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/22118253/69765965-fd65a700-1143-11ea-8804-cd1d33f2e824.png" width="800">
+</p>
+
+RektNet takes in bounding boxes outputed from CVC-YOLOv3 and outputs seven key points on the traffic cone, which is responsible for depth estimation of traffic cones on the 3D map. 
+
+Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/22118253/69766182-cc39a680-1144-11ea-9ebc-5708019ba5d2.png" width="600">
+</p>
+
+RektNet Training dataset including annotation for *Formula Student Driverless Standard* is open-sourced here(hyperlink)
