@@ -12,7 +12,26 @@ Abstract
 
 ## CVC-YOLOv3
 
-placeholder
+This is the MIT Driverless Custom implementation of YOLOv3. 
+
+One of our main contributions to vanilla YOLOv3 is the custom data loader we implemented:
+
+Each set of training images from a specific sensor/lens/perspective combination is uniformly rescaled such that their landmark size distributions matched that of the camera system on the vehicle. Each training image was then padded if too small or split up into multiple images if too large.
+
+<img src="https://user-images.githubusercontent.com/22118253/69765465-09e90000-1142-11ea-96b7-370868a0033b.png" width="400">
+
+
+Our final accuracy metrics for detecting traffic cones on the racing track is:
+
+```
+mAP: 89.35%     Recall: 92.77%     Precision: 86.94%      
+```
+
+
+
+
+
+Training dataset including annotation for *Formula Student Driverless* is also open-sourced here(hyperlink)
 
 ## RektNet
 
