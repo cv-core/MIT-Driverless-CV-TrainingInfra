@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from utils import storage_client
+gcloud_tmp_path = "/outputs/visualization/"
 
 def assignment(boxes, centroids):
     for i in centroids:
@@ -27,13 +27,13 @@ def update(boxes, centroids):
         centroids[i][1] = np.mean(boxes[boxes['closest'] == i]['w'])
     return centroids
 
-def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
+def main(csv_uri,dataset_path,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
     box_dict = {} #dictionary with key=tuple of image size, value=list of bounding boxes in image of that size
     img_w = 0
     img_h = 0
     updated_rows = []
     final_rows = []
-    in_csv_tempfile = storage_client.get_file(csv_uri, use_cache=False)
+    in_csv_tempfile = input_csvs
     length = 0
 
     ##### getting csv length for progress bar #####
@@ -51,9 +51,9 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
         print("getting images' width and height")
         for i, row in enumerate(tqdm(csv_reader,total=length,desc='Reading Images')):            
             ##### getting image width and height #####
-            img_path = storage_client.get_uri_filepath(row[1])
+            img_path = os.path.join(dataset_path,row[0])
             if not os.path.isfile(img_path):
-                raise Exception("could not download image: {image_uri}".format(image_uri=row[1]))
+                raise Exception("could not find image: {image_uri}".format(image_uri=os.path.join(dataset_path,row[0])))
             img = cv2.imread(img_path)
             img_h, img_w, _ = img.shape            
             #############################
@@ -93,9 +93,7 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
         plt.xlabel('Width', fontsize=18)
         plt.ylabel('Height', fontsize=16)
         plt.legend(labels)
-        fig.savefig('original_boxes.png')
-        storage_client.upload_file('original_boxes.png', os.path.join(output_uri, "original_boxes.png"))
-        os.remove('original_boxes.png')
+        fig.savefig(os.path.join(gcloud_tmp_path,'original_boxes.png'))
 
     #############################
 
@@ -165,8 +163,6 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
         plt.xlabel('Width', fontsize=18)
         plt.ylabel('Height', fontsize=16)
         figure.savefig('scaled_boxes.png')
-        storage_client.upload_file('scaled_boxes.png', os.path.join(output_uri, "scaled_boxes.png"))
-        os.remove('scaled_boxes.png')
         #############################
 
         #plot centroids on top
@@ -177,9 +173,7 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
             w.append(centroids[key][1])
         plt.scatter(w,h, color='k')
         figure.suptitle('Centroids and Scaled Boxes', fontsize=20)
-        figure.savefig('centroids_scaled.png')
-        storage_client.upload_file('centroids_scaled.png', os.path.join(output_uri, "centroids_scaled.png"))
-        os.remove('centroids_scaled.png')
+        figure.savefig(os.path.join(gcloud_tmp_path,'centroids_scaled.png'))
         #############################
 
         #plot centroids separately
@@ -191,9 +185,7 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
             w.append(centroids[key][1])
         plt.scatter(w,h)
         figure2.suptitle('Centroids', fontsize=20)
-        figure2.savefig('centroids.png')
-        storage_client.upload_file('centroids.png', os.path.join(output_uri, "centroids.png"))
-        os.remove('centroids.png')
+        figure2.savefig(os.path.join(gcloud_tmp_path,'centroids.png'))
         #############################
     #############################
     
@@ -203,8 +195,6 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
     for key in centroids:
         text_file .write('%0.2f,%0.2f \n'%(centroids[key][0], centroids[key][1]))
     text_file.close()
-    storage_client.upload_file('anchors.txt', os.path.join(output_uri, 'anchors_%d.txt'%(num_clst)))
-    os.remove('anchors.txt')
     #############################
 
     scale = None
@@ -328,8 +318,8 @@ def main(csv_uri,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
                 csv_writer.writerow(second_row)
                 for row in list_rows:
                     csv_writer.writerow(row)
-            print("Uploading {list_uri} to GCloud...")
-            storage_client.upload_file(out_csv_tempfile.name, list_uri)
+            print("Saving {list_uri} ...")
+            os.rename(out_csv_tempfile.name, list_uri)
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -340,6 +330,7 @@ if __name__ == "__main__":
         parser.set_defaults(**{name:default})
 
     parser.add_argument("--input_csvs", help="csv file to split", default = 'dataset/all.csv')
+    parser.add_argument('--dataset_path', type=str, help='path to image dataset',default="dataset/YOLO_Dataset/")
     parser.add_argument('--num_clst', type=int, default=9, help='number of anchor boxes wish to be generated')
     parser.add_argument('--max_cone_height', default = 83, type = int, help='height of maximum sized cone to scale to\n')
     parser.add_argument('--min_cone_height', default = 10, type = int, help='height of minimum sized cone to scale to\n')
@@ -353,6 +344,7 @@ if __name__ == "__main__":
     split_up = [int(x) for x in opt.split_up.split('-')]
 
     main(csv_uri=opt.input_csvs,
+    dataset_path=opt.dataset_path,
     num_clst=opt.num_clst,
     max_cone=opt.max_cone_height,
     min_cone=opt.min_cone_height,
