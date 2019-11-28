@@ -198,16 +198,6 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, dat
         num = 0
         for uri in tqdm(image_uris,desc="Processing Image Dataset"):
             uri_parts = uri.split("/")
-            # start_inx = 0
-            # if uri_parts[0] == 'https:':
-            #     start_inx = 3
-            # elif uri_parts[0] == 'gs:':
-            #     start_inx = 2
-            # bucket_name = uri_parts[start_inx]
-            # bucket = gc_storage_client.get_bucket(bucket_name)
-            # blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
-            # if not os.path.isfile('./gs/' + uri_parts[-1]):
-            #     blob.download_to_filename('./gs/' + uri_parts[-1])
 
             image = cv2.imread(uri)
             h, _, _ = image.shape
@@ -245,42 +235,7 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, dat
 
     return train_images, train_labels, val_images, val_labels
 
-# def load_imgs_csv(val_vis_uri):
-#     uri_parts = val_vis_uri.split("/")
-#     bucket_name = uri_parts[3]
-#     bucket = gc_storage_client.get_bucket(bucket_name)
-#     blob = bucket.blob("/".join(uri_parts[4:]))
-#     with tempfile.NamedTemporaryFile() as tmpFile:
-#         blob.download_to_filename(tmpFile.name)
-#         train_data_table = pd.read_csv(tmpFile.name)
 
-#     image_names = train_data_table.values[:, 0]
-#     image_uris = train_data_table.values[:, 1]
-#     names = []
-#     uris = []
-#     output_images = []
-
-#     for i in range(len(image_names)):
-#         names.append(image_names[i])
-
-#     if not os.path.isdir("./gs"):
-#         os.mkdir("./gs")
-
-#     for uri in tqdm(image_uris,desc="Downloading Images"):
-#         uri_parts = uri.split("/")
-#         start_inx = 0
-#         if uri_parts[0] == 'https:':
-#             start_inx = 3
-#         elif uri_parts[0] == 'gs:':
-#             start_inx = 2
-#         bucket_name = uri_parts[start_inx]
-#         bucket = gc_storage_client.get_bucket(bucket_name)
-#         blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
-#         if not os.path.isfile('./gs/' + uri_parts[-1]):
-#             blob.download_to_filename('./gs/' + uri_parts[-1])
-#         output_images.append('./gs/' + uri_parts[-1])
-
-#     return names, output_images
 
 def calculate_distance(target_points,pred_points):
     dist_matrix = []
