@@ -27,7 +27,7 @@ def update(boxes, centroids):
         centroids[i][1] = np.mean(boxes[boxes['closest'] == i]['w'])
     return centroids
 
-def main(csv_uri,dataset_path,num_clst,max_cone,min_cone,if_plot,output_uri,split_up):
+def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,split_up):
     box_dict = {} #dictionary with key=tuple of image size, value=list of bounding boxes in image of that size
     img_w = 0
     img_h = 0
@@ -216,15 +216,15 @@ def main(csv_uri,dataset_path,num_clst,max_cone,min_cone,if_plot,output_uri,spli
             final_rows.append(flag_row)
             #############################
 
-    new_train_uri = os.path.join(output_uri, "train.csv")
+    new_train_uri = os.path.join(output_path, "train.csv")
     train_rows = []
-    new_test_uri = os.path.join(output_uri, "test.csv")
+    new_test_uri = os.path.join(output_path, "test.csv")
     test_rows = []
-    new_validate_uri = os.path.join(output_uri, "validate.csv")
+    new_validate_uri = os.path.join(output_path, "validate.csv")
     validate_rows = []
-    new_train_validate_uri = os.path.join(output_uri, "train-validate.csv")
+    new_train_validate_uri = os.path.join(output_path, "train-validate.csv")
     train_validate_rows = []
-    all_uri = os.path.join(output_uri, "all.csv")
+    all_uri = os.path.join(output_path, "all.csv")
     all_rows = []
     empty_imgs = []
     compensate_rows = []
@@ -331,11 +331,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--input_csvs", help="csv file to split", default = 'dataset/all.csv')
     parser.add_argument('--dataset_path', type=str, help='path to image dataset',default="dataset/YOLO_Dataset/")
+    parser.add_argument('--output_path', type=str, help='path to output csv files',default="dataset/")
     parser.add_argument('--num_clst', type=int, default=9, help='number of anchor boxes wish to be generated')
     parser.add_argument('--max_cone_height', default = 83, type = int, help='height of maximum sized cone to scale to\n')
     parser.add_argument('--min_cone_height', default = 10, type = int, help='height of minimum sized cone to scale to\n')
     parser.add_argument("--split_up",  type=str, default = '75-15-0', help="train/validate/test split")
-    parser.add_argument("--output_bucket", type=str, help="Folder name to plop all the data", default = 'gs://mit-dut-driverless-internal/vectorized-yolov3-training/helpers/hive0123/')
     
     add_bool_arg('if_plot', default=True, help='whether to get anchor boxes plotted, plots saved as original_boxes.png, scaled_boxes.png, centroids.png in output uri')
 
@@ -345,10 +345,10 @@ if __name__ == "__main__":
 
     main(csv_uri=opt.input_csvs,
     dataset_path=opt.dataset_path,
+    output_path=opt.output_path,
     num_clst=opt.num_clst,
     max_cone=opt.max_cone_height,
     min_cone=opt.min_cone_height,
     if_plot=opt.if_plot,
-    output_uri=opt.output_bucket,
     split_up=split_up)
     
