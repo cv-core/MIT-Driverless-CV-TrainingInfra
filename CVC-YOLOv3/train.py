@@ -286,7 +286,6 @@ if __name__ == '__main__':
     parser.add_argument('--val_tolerance', type=int, default=3, help="tolerance for validation loss decreasing")
     parser.add_argument('--min_epochs', type=int, default=3, help="minimum training epochs")
     parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model weights")
-    add_bool_arg('auto_sd', default=True, help='whether to enable automatical instance shutdown after training. default to True')
     # Default output location of visualization is "Buckets/mit-dut-driverless-internal/dumping-ground/visualization/"
     parser.add_argument("--vis_batch", type=int, default=0, help="number of batches you wish to load and visualize before quitting training")
 
@@ -370,11 +369,3 @@ if __name__ == '__main__':
                   val_tolerance=opt.val_tolerance,
                   min_epochs=opt.min_epochs
                   )
-
-    auto_sd_trigger = opt.auto_sd
-    if opt.debug_mode or opt.validation_mode or opt.evaluate:
-        auto_sd_trigger = False
-
-    if auto_sd_trigger:
-        print('Shutting down instance...')
-        os.system('sudo shutdown now')
