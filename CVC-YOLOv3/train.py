@@ -104,7 +104,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
     bw  = model.get_bw()
     validate_uri, train_uri, _, _ = model.get_links()
 
-    if output_path == "automatic"
+    if output_path == "automatic":
         current_month = datetime.now().strftime('%B').lower()
         current_year = str(datetime.now().year)
         if not os.path.exists(os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + model_cfg.split('.')[0].split('/')[-1])):
