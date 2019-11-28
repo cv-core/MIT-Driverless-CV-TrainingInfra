@@ -32,7 +32,7 @@ def create_modules(module_defs,xy_loss,wh_loss,no_object_loss,object_loss,vanill
         csv_reader = csv.reader(f)
         row = next(csv_reader)
         row = str(row)[2:-2]
-        anchor_list = [[float(y) for y in x.split(',')] for x in row.split('|')]
+        anchor_list = [[float(y) for y in x.split(',')] for x in row.split("'")[0].split('|')]
     #############################
 
     ##### using vanilla anchor boxes if its switch is on #####
@@ -265,7 +265,7 @@ class Darknet(nn.Module):
             csv_reader = csv.reader(f)
             row = next(csv_reader)
             row = str(row)[2:-2]
-            anchor_list = [[float(y) for y in x.split(',')] for x in row.split('|')]
+            anchor_list = [[float(y) for y in x.split(',')] for x in row.split("'")[0].split('|')]
         #############################
 
         ##### using vanilla anchor boxes until skanda dataloader is done #####
