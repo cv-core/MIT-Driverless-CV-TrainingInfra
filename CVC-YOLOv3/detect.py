@@ -189,7 +189,7 @@ def detect(target_path,
             print(f'please check output video at {local_output_uri}')
             shutil.rmtree(detection_tmp_path)
         print("Please go to the link below to check the detection output file: ")
-        print(local_output_uri)
+        print(output_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
