@@ -8,6 +8,7 @@ from tqdm import tqdm
 import numpy as np
 import cv2
 import copy
+from datetime import datetime
 
 import PIL
 from PIL import Image, ImageDraw
@@ -270,7 +271,7 @@ def main():
     # Train our model.
     train_model(
         model=model,
-        output_uri=args.output_uri,
+        output_uri=output_uri,
         dataloader=train_dataloader, 
         loss_function=loss_func, 
         optimizer=optimizer, 

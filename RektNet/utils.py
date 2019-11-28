@@ -169,7 +169,7 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, dat
 
     if train_labels is None:
         # Separate the labels from the input data.
-        images = train_data_table.values[:, 1]
+        images = train_data_table.values[:, 0]
         labels = train_data_table.values[:, 2:2+len(keypoint_keys)]
 
         tmp_labels = []
@@ -197,7 +197,7 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, dat
 
         num = 0
         for uri in tqdm(image_uris,desc="Processing Image Dataset"):
-            # uri_parts = uri.split("/")
+            uri_parts = uri.split("/")
             # start_inx = 0
             # if uri_parts[0] == 'https:':
             #     start_inx = 3
