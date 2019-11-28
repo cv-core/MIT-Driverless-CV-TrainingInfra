@@ -4,6 +4,7 @@ The repo is originally forked from https://github.com/ultralytics/yolov3 and con
 
 ## Requirements:
 
+* CUDA >= 10.1
 * python=3.6
 * numpy==1.16.4
 * matplotlib==3.1.0
@@ -84,8 +85,20 @@ python3 detect.py --model_cfg=model_cfg/yolo_baseline.cfg --target_path=<path to
 
 Once you've finished inference, you can access the result in `./outputs/visualization/`
 
-### Splits your own csv file 
+#### Run Bayesian hyperparameter search
+
+Before running the Bayesian hyperparameter search, make sure you know what specific hyperparameter that you wish to tuning on, and a reasonable operating range/options of that hyperparameter.
+
+Go into the `objective()` function of `train_hyper.py` edit your custom search
+
+Then launch your Bayesian hyperparameter search
+```
+python3 train_hyper.py --model_cfg=<path to cfg file> --study_name=<give it a proper name>
+```
+
+#### Splits your own csv file 
 
 ```
 python3 generate_kmeans_dataset_csvs.py --input_csvs=<path to your csv file that contains all the label> --dataset_path=<path to your image dataset>
 ```
+
