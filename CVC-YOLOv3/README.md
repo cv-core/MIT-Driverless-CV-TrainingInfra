@@ -27,7 +27,7 @@ The repo is originally forked from https://github.com/ultralytics/yolov3 and con
 ### 1.Download our dataset
 
 ##### Download through GCP Tookit
-Image dataset:
+###### 1.1.1 Image dataset:
 ```
 gsutil cp -p gs://mit-driverless-open-source/YOLO_Dataset.zip ./dataset/
 ```
@@ -35,7 +35,7 @@ then unzip
 ```
 unzip dataset/YOLO_Dataset.zip
 ```
-Label csv file:
+###### 1.1.2 Label csv file:
 ```
 gsutil cp -p gs://mit-driverless-open-source/yolov3-training/all.csv ./dataset/
 ```
@@ -45,7 +45,7 @@ gsutil cp -p gs://mit-driverless-open-source/yolov3-training/train.csv ./dataset
 ```
 gsutil cp -p gs://mit-driverless-open-source/yolov3-training/validate.csv ./dataset/
 ```
-Initial weights file:
+###### 1.1.3 Initial weights file:
 ```
 gsutil cp -p  gs://mit-driverless-open-source/yolov3-training/sample-yolov3.weights ./dataset/
 ```
@@ -63,7 +63,7 @@ You can download image dataset and label csv from the link below and unzip them 
 
 [Initial weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
 
-#### 1.1 Environment Setup (Optional)
+#### 1.2 Environment Setup (Optional)
 
 ```
 sudo python3 setup.py build develop

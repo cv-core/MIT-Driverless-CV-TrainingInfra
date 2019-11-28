@@ -21,38 +21,22 @@ This is our custom Key Points detection network
 ### 1.Download our dataset
 
 ##### Download through GCP Tookit
-Image dataset:
+###### 1.1 Image dataset:
 ```
 gsutil cp -p gs://mit-driverless-open-source/RektNet_Dataset.zip ./dataset/
 ```
 then unzip 
 ```
-unzip dataset/YOLO_Dataset.zip
+unzip dataset/RektNet_Dataset.zip
 ```
-Label csv file:
+###### 1.2 Label csv file:
 ```
-gsutil cp -p gs://mit-driverless-open-source/yolov3-training/all.csv ./dataset/
-```
-```
-gsutil cp -p gs://mit-driverless-open-source/yolov3-training/train.csv ./dataset/
-```
-```
-gsutil cp -p gs://mit-driverless-open-source/yolov3-training/validate.csv ./dataset/
-```
-Initial weights file:
-```
-gsutil cp -p  gs://mit-driverless-open-source/yolov3-training/sample-yolov3.weights ./dataset/
+gsutil cp -p gs://mit-driverless-open-source/rektnet-training/rektnet_label.csv ./dataset/
 ```
 
 ##### Download manually (Optional)
-You can download image dataset and label csv from the link below and unzip them into `./dataset/YOLO_Dataset/` 
+You can download image dataset and label csv from the link below and unzip them into `./dataset/RektNet_Dataset/` 
 
 [Image dataset](https://storage.cloud.google.com/mit-driverless-open-source/RektNet_Dataset.zip?authuser=1)
 
-[All label csv](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/all.csv?authuser=1)
-
-[Train label csv](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/train.csv?authuser=1)
-
-[Validate label csv](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/validate.csv?authuser=1)
-
-[Initial weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
+[All label csv](https://storage.cloud.google.com/mit-driverless-open-source/rektnet-training/rektnet_label.csv?authuser=1)
