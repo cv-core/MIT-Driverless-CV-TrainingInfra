@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 from models import Darknet
 from utils.datasets import ImageLabelDataset
-from utils.utils import model_info, print_args, Logger, visualize_and_save_to_gcloud,xywh2xyxy
+from utils.utils import model_info, print_args, Logger, visualize_and_save_to_local,xywh2xyxy
 import validate
 import warnings
 import sys

@@ -2,7 +2,6 @@ from __future__ import division
 
 import torch
 import math
-from utils import storage_client
 from PIL import ImageDraw, Image
 import sys
 
@@ -299,7 +298,7 @@ def draw_labels_on_image(img, labels, boxes, label_names, label_colors):
         #ctx.text((box[0], max(0, box[1] - 10)), text=label_names[label_i], fill=label_colors[label_i])
     return new_img
 
-def visualize_and_save_to_gcloud(img, labels, gcloud_path, tmp_path='/tmp/img.jpg', box_color="red"):
+def visualize_and_save_to_local(img, labels, tmp_path='/tmp/img.jpg', box_color="red"):
     if labels is not None:
         draw = ImageDraw.Draw(img)
         for i in range(len(labels)):
@@ -311,12 +310,10 @@ def visualize_and_save_to_gcloud(img, labels, gcloud_path, tmp_path='/tmp/img.jp
             draw.rectangle((x0, y0, x1, y1), outline=box_color)
 
     img.save(tmp_path)
-    storage_client.upload_file(tmp_path, gcloud_path)
 
-def upload_label_and_image_to_gcloud(img, labels, gcloud_path, tmp_path='/tmp/img.jpg'):
+def upload_label_and_image_to_gcloud(img, labels, tmp_path='/tmp/img.jpg'):
     img.save(tmp_path)
-    storage_client.upload_file(tmp_path, gcloud_path)
-    print(f'new image uploaded to {gcloud_path}')
+    print(f'new image saved to {tmp_path}')
 
 
 

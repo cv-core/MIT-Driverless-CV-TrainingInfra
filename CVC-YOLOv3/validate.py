@@ -12,8 +12,7 @@ import torchvision
 from models import Darknet
 from utils.datasets import ImageLabelDataset
 from utils.nms import nms
-from utils.utils import average_precision, bbox_iou, xywh2xyxy, calculate_padding, draw_labels_on_image, visualize_and_save_to_gcloud,xywh2xyxy,add_class_dimension_to_labels
-from utils import storage_client
+from utils.utils import average_precision, bbox_iou, xywh2xyxy, calculate_padding, draw_labels_on_image, visualize_and_save_to_local,xywh2xyxy,add_class_dimension_to_labels
 from tqdm import tqdm
 
 ################################################
@@ -23,7 +22,7 @@ import copy
 
 ################################################
 gcloud_vis_path = "gs://mit-dut-driverless-internal/dumping-ground/visualization/"
-gcloud_tmp_path = "/tmp/"
+gcloud_tmp_path = "/outputs/visualization/"
 ################################################
 
 def main(*, batch_size, model_cfg, weights_path, bbox_all, step, n_cpu):
@@ -177,7 +176,7 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,va
                     mR.append(r)
                     mP.append(p)
                     if bbox_all or sample_i < 2:  # log the first two images in every batch
-                        img_filepath = storage_client.get_uri_filepath(img_uris[sample_i])
+                        img_filepath = img_uris[sample_i]
                         if img_filepath is None:
                             print("NULL image filepath for image uri: {uri}".format(uri=img_uris[sample_i]))
                         orig_img = Image.open(img_filepath)
@@ -197,12 +196,11 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,va
                         if debug_mode:
                             pil_img = transforms.ToPILImage()(imgs.squeeze())
                             ##### getting the image's name #####
-                            img_path = storage_client.get_uri_filepath(img_uris[0])  
+                            img_path = img_uris[0]
                             img_name = ("_".join(map(str, img_path.split("_")[-5:])))
-                            gcloud_save_path = gcloud_vis_path + img_name[:-4] + "_predicted_vis.jpg"
                             tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_predicted_vis.jpg")
                             vis_label = add_class_dimension_to_labels(detect_box)
-                            visualize_and_save_to_gcloud(pil_img, vis_label, gcloud_save_path, tmp_path,box_color="red")
+                            visualize_and_save_to_local(pil_img, vis_label, tmp_path,box_color="red")
                             print("Prediction visualization uploaded")
                         #######################################################################################
 

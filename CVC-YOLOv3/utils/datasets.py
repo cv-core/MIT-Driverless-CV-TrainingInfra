@@ -18,7 +18,7 @@ import torch.utils.data
 import torch.nn.functional as F
 import imgaug.augmenters as iaa
 
-from utils.utils import xyxy2xywh, xywh2xyxy, calculate_padding, visualize_and_save_to_gcloud, scale_image, add_class_dimension_to_labels, xyhw2xyxy_corner, scale_labels, add_padding_on_each_side, get_patch_spacings, get_patch, pre_tile_padding, filter_and_offset_labels, upload_label_and_image_to_gcloud
+from utils.utils import xyxy2xywh, xywh2xyxy, calculate_padding, visualize_and_save_to_local, scale_image, add_class_dimension_to_labels, xyhw2xyxy_corner, scale_labels, add_padding_on_each_side, get_patch_spacings, get_patch, pre_tile_padding, filter_and_offset_labels, upload_label_and_image_to_gcloud
 
 ##### section for all random seeds #####
 torch.manual_seed(17)
@@ -29,9 +29,7 @@ torch.backends.cudnn.benchmark = False
 
 random.seed(a=17, version=2)
 torchvision.set_image_backend('accimage')
-gcloud_vis_path = "gs://mit-dut-driverless-internal/dumping-ground/visualization/"
-gcloud_dataset_path = "gs://mit-dut-driverless-external/tiling_dataset/"
-gcloud_tmp_path = "/tmp/"
+gcloud_tmp_path = "/outputs/visualization/"
 
 class ImageLabelDataset(torch.utils.data.Dataset, object):
     def __init__(self, path, dataset_path, width, height, augment_affine, num_images, augment_hsv, lr_flip, ud_flip, bw, n_cpu, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts,debug_mode, upload_dataset):
@@ -137,10 +135,9 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             vis_orig_img = copy.deepcopy(orig_img)
             labels = add_class_dimension_to_labels(img_labels)
             labels = xyhw2xyxy_corner(labels, skip_class_dimension=True)
-            gcloud_save_path = gcloud_vis_path + img_name[:-4] + ".jpg"
             tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + ".jpg")
-            visualize_and_save_to_gcloud(vis_orig_img, labels, gcloud_save_path, tmp_path,box_color="green")
-            print(f'new image uploaded to {gcloud_save_path}')
+            visualize_and_save_to_local(vis_orig_img, labels, tmp_path, box_color="green")
+            print(f'new image uploaded to {tmp_path}')
         
         # First, handle image re-shaping 
         if self.ts:
@@ -183,9 +180,8 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             labels = scale_labels(labels, self.scales[index])
             labels = add_padding_on_each_side(labels, horiz_pad, vert_pad)
             if self.vis_batch:
-                gcloud_path = gcloud_vis_path + img_name[:-4] + "_scaled.jpg"
                 tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_scaled.jpg")
-                visualize_and_save_to_gcloud(padded_img, labels, gcloud_path, tmp_path,box_color="red")
+                visualize_and_save_to_local(padded_img, labels, tmp_path, box_color="red")
 
             labels_temp = filter_and_offset_labels(labels, boundary)
 
@@ -196,12 +192,9 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                     labels = filter_and_offset_labels(pre_vis_labels, boundary)
 
-                    gcloud_save_path = gcloud_vis_path + img_name[:-4] + \
-                                        "_patch_{}.jpg".format(i)
                     tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + \
                                         "_patch_{}.jpg".format(i))
-                    visualize_and_save_to_gcloud(vis_patch_img, labels,
-                                                gcloud_save_path, tmp_path,box_color="blue")
+                    visualize_and_save_to_local(vis_patch_img, labels, tmp_path, box_color="blue")
             if self.upload_dataset:
                 pre_vis_labels = copy.deepcopy(labels)
                 for i in range(n_patches):
@@ -209,12 +202,9 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                     labels = filter_and_offset_labels(pre_vis_labels, boundary)
 
-                    gcloud_save_path = gcloud_dataset_path + img_name[:-4] + \
-                                        "_patch_{}.jpg".format(i)
                     tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + \
                                         "_patch_{}.jpg".format(i))
-                    upload_label_and_image_to_gcloud(vis_patch_img, labels,
-                                                gcloud_save_path, tmp_path)
+                    upload_label_and_image_to_gcloud(vis_patch_img, labels, tmp_path)
 
             else:
                 labels = filter_and_offset_labels(labels, boundary)
@@ -224,16 +214,14 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             labels_temp = labels
 
             if self.vis_batch:
-                gcloud_save_path = gcloud_vis_path + img_name[:-4] + "_pad_resized.jpg"
                 tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_pad_resized.jpg")
-                visualize_and_save_to_gcloud(img, labels, gcloud_save_path, tmp_path,box_color="blue")
+                visualize_and_save_to_local(img, labels, tmp_path, box_color="blue")
 
         labels = labels_temp
         if self.vis_batch and self.data_aug:
             vis_aug_img = copy.deepcopy(img)
-            gcloud_path = gcloud_vis_path + img_name[:-4] + "_before_aug.jpg"
             tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_before_aug.jpg")
-            visualize_and_save_to_gcloud(vis_aug_img, labels, gcloud_path, tmp_path,box_color="red")
+            visualize_and_save_to_local(vis_aug_img, labels, tmp_path, box_color="red")
         if self.augment_hsv or self.data_aug:
             if random.random() > 0.5:
                 img = self.jitter(img)
@@ -308,9 +296,8 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
         if self.vis_batch and self.data_aug:
             vis_post_aug_img = copy.deepcopy(img)
-            gcloud_save_path = gcloud_vis_path + img_name[:-4] + "_post_augmentation.jpg"
             tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_post_augmentation.jpg")
-            visualize_and_save_to_gcloud(vis_post_aug_img, labels, gcloud_save_path, tmp_path,box_color="green")
+            visualize_and_save_to_local(vis_post_aug_img, labels, tmp_path, box_color="green")
 
         if self.vis_batch:
             self.vis_counter += 1
