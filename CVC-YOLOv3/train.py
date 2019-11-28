@@ -17,7 +17,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from models import Darknet
-from utils import storage_client
 from utils.datasets import ImageLabelDataset
 from utils.utils import model_info, print_args, Logger, visualize_and_save_to_gcloud,xywh2xyxy
 import validate
@@ -46,7 +45,6 @@ if cuda:
     torch.cuda.manual_seed_all(0)
     torch.backends.cudnn.benchmark = True
     torch.cuda.empty_cache()
-
 
 def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, epoch,
               num_epochs, step):
@@ -112,7 +110,6 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
         output_uri = os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + model_cfg.split('.')[0].split('/')[-1])
     else:
         output_uri = output_path
-
 
     num_validate_images, num_train_images = model.num_images()
     conf_thresh, nms_thresh, iou_thresh = model.get_threshs()
@@ -220,9 +217,6 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
                 # First, save the weights
                 save_weights_uri = os.path.join(output_uri, "{epoch}.weights".format(epoch=epoch))
                 model.save_weights(save_weights_uri)
-                # with tempfile.NamedTemporaryFile() as tmpfile:
-                #     model.save_weights(tmpfile.name)
-                #     storage_client.upload_file(tmpfile.name, save_weights_uri, use_cache=False)
 
                 with torch.no_grad():
                     print("Calculating loss on validate data")
@@ -256,7 +250,6 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
                             onnx_gen = subprocess.call(['python3', 'yolo2onnx.py', '--cfg_name', cfg_name, '--weights_name', weights_name])
                             save_weights_uri = os.path.join(output_uri, onnx_name)
                             os.rename(weights_name, save_weights_uri)
-                            # storage_client.upload_file(weights_name, save_weights_uri, use_cache=False)
                             try:
                                 os.remove(onnx_name)
                             except:
@@ -287,6 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_epochs', type=int, default=3, help="minimum training epochs")
     parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model weights")
     # Default output location of visualization is "Buckets/mit-dut-driverless-internal/dumping-ground/visualization/"
+    #TO-DO
     parser.add_argument("--vis_batch", type=int, default=0, help="number of batches you wish to load and visualize before quitting training")
 
     ##### tile and scale #####
@@ -307,8 +301,10 @@ if __name__ == '__main__':
 
     add_bool_arg('vanilla_anchor', default=False, help="whether to use vanilla anchor boxes for training")
     add_bool_arg('debug_mode', default=False, help="whether to visualize the validate prediction during mAP calculation, need to make CUDA=False at first. If true then batch size will also automatically set to 1 and training shuffle will be False. ")
+    #TO-DELETE
     add_bool_arg('validation_mode', default=False, help="whether to enable validation mode between iou and bounding box size")
     add_bool_arg('data_aug', default=False, help="whether to do all stable data augmentation")
+    #TO-DO
     add_bool_arg('upload_dataset', default=False, help="whether to uploading all tiles to GCP, have to enable --ts first")
 
     
