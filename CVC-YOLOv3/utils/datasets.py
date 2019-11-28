@@ -18,7 +18,6 @@ import torch.utils.data
 import torch.nn.functional as F
 import imgaug.augmenters as iaa
 
-from utils import storage_client
 from utils.utils import xyxy2xywh, xywh2xyxy, calculate_padding, visualize_and_save_to_gcloud, scale_image, add_class_dimension_to_labels, xyhw2xyxy_corner, scale_labels, add_padding_on_each_side, get_patch_spacings, get_patch, pre_tile_padding, filter_and_offset_labels, upload_label_and_image_to_gcloud
 
 ##### section for all random seeds #####
@@ -33,11 +32,6 @@ torchvision.set_image_backend('accimage')
 gcloud_vis_path = "gs://mit-dut-driverless-internal/dumping-ground/visualization/"
 gcloud_dataset_path = "gs://mit-dut-driverless-external/tiling_dataset/"
 gcloud_tmp_path = "/tmp/"
-
-def download_image(image_uri):
-    os_filepath = storage_client.get_file(image_uri)
-    if not os.path.isfile(os_filepath):
-        raise Exception("could not download image: {image_uri}".format(image_uri=image_uri))
 
 class ImageLabelDataset(torch.utils.data.Dataset, object):
     def __init__(self, path, dataset_path, width, height, augment_affine, num_images, augment_hsv, lr_flip, ud_flip, bw, n_cpu, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts,debug_mode, upload_dataset):
@@ -99,10 +93,6 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             futures = []
 
         for (img_file, label) in zip(self.img_files, self.labels):
-            if n_cpu > 0:
-                futures.append(executor.submit(download_image, img_file))
-            else:
-                download_image(img_file)
             if self.num_targets_per_image is None or len(label) > self.num_targets_per_image:
                 self.num_targets_per_image = len(label)
 
