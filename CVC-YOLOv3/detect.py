@@ -103,7 +103,7 @@ def single_img_detect(target_path,output_path,mode,model,device,conf_thres,nms_t
             y1 = main_box_corner[i, 3].to('cpu').item() / ratio - pad_h 
             draw.rectangle((x0, y0, x1, y1), outline="red")
 
-        if mode == 'image'：
+        if mode == 'image':
             img_with_boxes.save(os.path.join(output_path,target_path.split('/')[-1]))
             return os.path.join(output_path,target_path.split('/')[-1])
         else:
