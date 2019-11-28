@@ -26,13 +26,14 @@ class ConeDataset(Dataset):
         self.transform = transform
         self.save_checkpoints = save_checkpoints
         self.vis_dataloader = vis_dataloader
+        self.dataset_path = dataset_path
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, index):
         print(self.images[index])
-        image = cv2.imread(dataset_path+self.images[index])
+        image = cv2.imread(self.dataset_path+self.images[index])
         orig_image_size = image.shape
         image_name = self.images[index].split(".")[0]
         image = prep_image(image=image,target_image_size=self.target_image_size)
