@@ -22,8 +22,6 @@ if os.path.exists(vis_tmp_path):
     shutil.rmtree(vis_tmp_path)  # delete output folder
 os.makedirs(vis_tmp_path)  # make new output folder
 
-# gc_storage_client = storage.Client(project="mitdriverless")
-
 class Logger(object):
     def __init__(self, File):
         Type = File.split('.')[-1] 
