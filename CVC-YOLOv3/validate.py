@@ -57,10 +57,10 @@ def main(*, batch_size, model_cfg, bbox_all, step, n_cpu):
         shuffle=False,
         num_workers=n_cpu,
         pin_memory=True)
-    return validate(dataloader, model, device, step, bbox_all, tensorboard_writer=None)
+    return validate(dataloader, model, device, step, bbox_all)
 
 # only works on a single class
-def validate(*, dataloader, model, device, step=-1, bbox_all=False, tensorboard_writer=None,debug_mode,validation_mode):
+def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,validation_mode):
         # result = open("logs/result.txt", "w" )
 
         with torch.no_grad():
@@ -172,13 +172,6 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False, tensorboard_
 
                     # Compute Average Precision (AP) per class
                     ap, r, p = average_precision(tp=correct, conf=probabilities, n_gt=labels.shape[0])
-                    if tensorboard_writer is not None:
-                        pass
-                        # TODO implement the pr curve; some parameter is incorrect.
-                        # tensorboard_writer.add_pr_curve('validate_pr_curve',
-                        #                                 labels=labels[:, 0],
-                        #                                 predictions=probabilities,
-                        #                                 global_step=step)
 
                     # Compute mean AP across all classes in this image, and append to image list
                     mAPs.append(ap)
@@ -213,33 +206,7 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False, tensorboard_
                             visualize_and_save_to_gcloud(pil_img, vis_label, gcloud_save_path, tmp_path,box_color="red")
                             print("Prediction visualization uploaded")
                         #######################################################################################
-
-                        if tensorboard_writer is not None:
-                            if step == 1:  # if the first step
-                                ground_truth_box_corner = labels[:, 1:5]
-                                ground_truth_box_corner[:, (0, 2)] *= width
-                                ground_truth_box_corner[:, (1, 3)] *= height
-                                ground_truth_box_corner /= scale_factor
-                                ground_truth_box_corner[:, 0] -= pad_w
-                                ground_truth_box_corner[:, 1] -= pad_h
-                                ground_truth_box_corner = xywh2xyxy(ground_truth_box_corner)
-                                ground_truth_img = draw_labels_on_image(orig_img,
-                                                                        labels=labels[:, 0].int(),
-                                                                        boxes=ground_truth_box_corner.int().tolist(),
-                                                                        label_names=["cone", "unused", "unused"],
-                                                                        label_colors=["blue", "black", "red"])
-                                tensorboard_writer.add_image(f'img/{img_uris[sample_i]}/ground_truth',
-                                                            torchvision.transforms.functional.to_tensor(ground_truth_img),
-                                                            global_step=step)
-                            predicted_image = draw_labels_on_image(orig_img,
-                                                                    labels=predictions,
-                                                                    boxes=box_corner.int().tolist(),
-                                                                    label_names=["cone", "unused", "unused"],
-                                                                    label_colors=["blue", "black", "red"])
-                            tensorboard_writer.add_image(f'img/{img_uris[sample_i]}/predicted',
-                                                        torchvision.transforms.functional.to_tensor(predicted_image),
-                                                        global_step=step)
-
+                        
                 mean_mAP = torch.tensor(mAPs, dtype=torch.float).mean().item()
                 mean_R = torch.tensor(mR, dtype=torch.float).mean().item()
                 mean_P = torch.tensor(mP, dtype=torch.float).mean().item()

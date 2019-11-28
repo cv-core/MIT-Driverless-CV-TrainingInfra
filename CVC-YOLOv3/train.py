@@ -14,7 +14,6 @@ import math
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
 
 from models import Darknet
 from utils import storage_client
@@ -48,7 +47,7 @@ if cuda:
     torch.cuda.empty_cache()
 
 
-def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, epoch,
+def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, epoch,
               num_epochs, step):
     print(f"Model in {label_prefix} mode")
     epoch_losses = [0.0] * 7
@@ -65,8 +64,6 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, ep
         step_num_targets = ((targets[:, :, 1:5] > 0).sum(dim=2) > 1).sum().item() + 1e-12
         epoch_num_targets += step_num_targets
         # Compute loss, compute gradient, update parameters
-        if writer is not None and step[0] == 0 and label_prefix == "train":  # if we're on the first step, log a sample through the network
-            writer.add_graph(model, imgs[0:min(3, imgs.shape[0])])
         if optimizer is not None:
             optimizer.zero_grad()
         losses = model(imgs, targets)
@@ -78,7 +75,6 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, ep
         for j, (label, loss) in enumerate(zip(loss_labels, losses)):
             batch_loss = loss.sum().to('cpu').item()
             epoch_losses[j] += batch_loss
-            writer.add_scalar(label, batch_loss/step_num_targets, step[0])
         finished_time = time.time()
         step_time_total = finished_time - t1
         epoch_time_total += step_time_total
@@ -115,165 +111,152 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_e
     onnx_name = model.get_onnx_name()
 
     with tempfile.TemporaryDirectory() as tensorboard_data_dir:
-        try:
-            with SummaryWriter(tensorboard_data_dir) as writer:
-                for k, v in input_arguments:
-                    writer.add_text( k, str(v))
+        print("Initializing data loaders")
+        train_data_loader = torch.utils.data.DataLoader(
+            ImageLabelDataset(train_uri, width=img_width, height=img_height, augment_hsv=augment_hsv,
+                                augment_affine=augment_affine, num_images=num_train_images,
+                                bw=bw, n_cpu=num_cpu, lr_flip=lr_flip, ud_flip=ud_flip,vis_batch=vis_batch,data_aug=data_aug,blur=blur,salt=salt,noise=noise,contrast=contrast,sharpen=sharpen,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
+            batch_size=(1 if debug_mode else batch_size),
+            shuffle=(False if debug_mode else True),
+            num_workers=(0 if vis_batch else num_cpu),
+            pin_memory=cuda)
+        print("Num train images: ", len(train_data_loader.dataset))
 
-                print("Initializing data loaders")
-                train_data_loader = torch.utils.data.DataLoader(
-                    ImageLabelDataset(train_uri, width=img_width, height=img_height, augment_hsv=augment_hsv,
-                                      augment_affine=augment_affine, num_images=num_train_images,
-                                      bw=bw, n_cpu=num_cpu, lr_flip=lr_flip, ud_flip=ud_flip,vis_batch=vis_batch,data_aug=data_aug,blur=blur,salt=salt,noise=noise,contrast=contrast,sharpen=sharpen,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
-                    batch_size=(1 if debug_mode else batch_size),
-                    shuffle=(False if debug_mode else True),
-                    num_workers=(0 if vis_batch else num_cpu),
-                    pin_memory=cuda)
-                print("Num train images: ", len(train_data_loader.dataset))
+        validate_data_loader = torch.utils.data.DataLoader(
+            ImageLabelDataset(validate_uri, width=img_width, height=img_height, augment_hsv=False,
+                                augment_affine=False, num_images=num_validate_images,
+                                bw=bw, n_cpu=num_cpu, lr_flip=False, ud_flip=False,vis_batch=vis_batch,data_aug=False,blur=False,salt=False,noise=False,contrast=False,sharpen=False,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
+            batch_size=(1 if debug_mode else batch_size),
+            shuffle=False,
+            num_workers=(0 if vis_batch else num_cpu),
+            pin_memory=cuda)
+        print("Num validate images: ", len(validate_data_loader.dataset))
 
-                validate_data_loader = torch.utils.data.DataLoader(
-                    ImageLabelDataset(validate_uri, width=img_width, height=img_height, augment_hsv=False,
-                                      augment_affine=False, num_images=num_validate_images,
-                                      bw=bw, n_cpu=num_cpu, lr_flip=False, ud_flip=False,vis_batch=vis_batch,data_aug=False,blur=False,salt=False,noise=False,contrast=False,sharpen=False,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
-                    batch_size=(1 if debug_mode else batch_size),
-                    shuffle=False,
-                    num_workers=(0 if vis_batch else num_cpu),
-                    pin_memory=cuda)
-                print("Num validate images: ", len(validate_data_loader.dataset))
+        ##### additional configuration #####
+        print("Training batch size: " + str(batch_size))
+        
+        print("Checkpoint interval: " + str(checkpoint_interval))
 
-                ##### additional configuration #####
-                print("Training batch size: " + str(batch_size))
-                
-                print("Checkpoint interval: " + str(checkpoint_interval))
+        print("Loss constants: " + str(loss_constant))
 
-                print("Loss constants: " + str(loss_constant))
+        print("Anchor boxes: " + str(anchors))
 
-                print("Anchor boxes: " + str(anchors))
+        print("Training image width: " + str(img_width))
 
-                print("Training image width: " + str(img_width))
+        print("Training image height: " + str(img_height))
 
-                print("Training image height: " + str(img_height))
+        print("Confidence Threshold: " + str(conf_thresh))
 
-                print("Confidence Threshold: " + str(conf_thresh))
+        print("Number of training classes: " + str(num_classes))
 
-                print("Number of training classes: " + str(num_classes))
+        print("Conv activation type: " + str(conv_activation))
 
-                print("Conv activation type: " + str(conv_activation))
+        print("Starting learning rate: " + str(lr))
 
-                print("Starting learning rate: " + str(lr))
+        print("Datasets: " + train_uri.split('/')[5])
 
-                print("Datasets: " + train_uri.split('/')[5])
+        if ts:
+            print("Tile and scale mode [on]")
+        else:
+            print("Tile and scale mode [off]")
 
-                if ts:
-                    print("Tile and scale mode [on]")
-                else:
-                    print("Tile and scale mode [off]")
+        if data_aug:
+            print("Data augmentation mode [on]")
+        else:
+            print("Data augmentation mode [off]")
 
-                if data_aug:
-                    print("Data augmentation mode [on]")
-                else:
-                    print("Data augmentation mode [off]")
+        ####################################
 
-                ####################################
+        start_epoch = 0
 
-                start_epoch = 0
+        weights_path = weights_path
+        if optimizer_pick == "Adam":
+            print("Using Adam Optimizer")
+            optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
+                                        lr=lr, weight_decay=weight_decay)
+        elif optimizer_pick == "SGD":
+            print("Using SGD Optimizer")
+            optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()),
+                                    lr=lr, momentum=momentum, weight_decay=weight_decay)
+        else:
+            raise Exception(f"Invalid optimizer name: {optimizer_pick}")
+        print("Loading weights")
+        model.load_weights(weights_path, model.get_start_weight_dim())
 
-                # weights_path = storage_client.get_file(weights_uri)
-                weights_path = weights_path
-                if optimizer_pick == "Adam":
-                    print("Using Adam Optimizer")
-                    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
-                                                lr=lr, weight_decay=weight_decay)
-                elif optimizer_pick == "SGD":
-                    print("Using SGD Optimizer")
-                    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()),
-                                            lr=lr, momentum=momentum, weight_decay=weight_decay)
-                else:
-                    raise Exception(f"Invalid optimizer name: {optimizer_pick}")
-                print("Loading weights")
-                model.load_weights(weights_path, model.get_start_weight_dim())
+        if torch.cuda.device_count() > 1:
+            print('Using ', torch.cuda.device_count(), ' GPUs')
+            model = nn.DataParallel(model)
+        model = model.to(device, non_blocking=True)
 
-                if torch.cuda.device_count() > 1:
-                    print('Using ', torch.cuda.device_count(), ' GPUs')
-                    model = nn.DataParallel(model)
-                model = model.to(device, non_blocking=True)
+        # Set scheduler
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=gamma)
 
-                # Set scheduler
-                scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=gamma)
+        val_loss = 999  # using a high number for validation loss
+        val_loss_counter = 0
+        step = [0]  # wrapping in an array so it is mutable
+        epoch = start_epoch
+        while epoch < num_epochs and step[0] < num_steps and not evaluate:
+            epoch += 1
+            scheduler.step()
+            model.train()
+            run_epoch(label_prefix="train", data_loader=train_data_loader, epoch=epoch,
+                        step=step, model=model, num_epochs=num_epochs, num_steps=num_steps,
+                        optimizer=optimizer)
+            print('Completed epoch: ', epoch)
+            # Update best loss
+            if epoch % checkpoint_interval == 0 or epoch == num_epochs or step[0] >= num_steps:
+                # First, save the weights
+                gs_weights_uri = os.path.join(output_uri, "{epoch}.weights".format(epoch=epoch))
+                with tempfile.NamedTemporaryFile() as tmpfile:
+                    model.save_weights(tmpfile.name)
+                    storage_client.upload_file(tmpfile.name, gs_weights_uri, use_cache=False)
 
-                val_loss = 999  # using a high number for validation loss
-                val_loss_counter = 0
-                step = [0]  # wrapping in an array so it is mutable
-                epoch = start_epoch
-                while epoch < num_epochs and step[0] < num_steps and not evaluate:
-                    epoch += 1
-                    scheduler.step()
-                    model.train()
-                    run_epoch(label_prefix="train", data_loader=train_data_loader, epoch=epoch,
-                              step=step, model=model, num_epochs=num_epochs, num_steps=num_steps,
-                              optimizer=optimizer, writer=writer)
-                    print('Completed epoch: ', epoch)
-                    # Update best loss
-                    if epoch % checkpoint_interval == 0 or epoch == num_epochs or step[0] >= num_steps:
-                        # First, save the weights
-                        gs_weights_uri = os.path.join(output_uri, "{epoch}.weights".format(epoch=epoch))
+                with torch.no_grad():
+                    print("Calculating loss on validate data")
+                    epoch_losses, epoch_time_total, epoch_num_targets = run_epoch(
+                        label_prefix="validate", data_loader=validate_data_loader, epoch=epoch,
+                        model=model, num_epochs=num_epochs, num_steps=num_steps, optimizer=None,
+                        step=step)
+                    avg_epoch_loss = epoch_losses[0] / epoch_num_targets
+                    print('Average Validation Loss: {0:10.6f}'.format(avg_epoch_loss))
+
+                    if avg_epoch_loss > val_loss and epoch > min_epochs:
+                        val_loss_counter += 1
+                        print(f"Validation loss did not decrease for {val_loss_counter}"
+                                f" consecutive check(s)")
+                    else:
+                        print("Validation loss decreased. Yay!!")
+                        val_loss_counter = 0
+                        val_loss = avg_epoch_loss
+                        ##### updating best result for optuna study #####
+                        result = open("logs/result.txt", "w" )
+                        result.write(str(avg_epoch_loss))
+                        result.close() 
+                        ###########################################
+                    validate.validate(dataloader=validate_data_loader, model=model, device=device, step=step[0], bbox_all=False,debug_mode=debug_mode,validation_mode=validation_mode)
+                    if val_loss_counter == val_tolerance:
+                        print("Validation loss stopped decreasing over the last " + str(val_tolerance) + " checkpoints, creating onnx file")
                         with tempfile.NamedTemporaryFile() as tmpfile:
                             model.save_weights(tmpfile.name)
-                            storage_client.upload_file(tmpfile.name, gs_weights_uri, use_cache=False)
+                            weights_name = tmpfile.name
+                            cfg_name = os.path.join(tempfile.gettempdir(), model_cfg.split('/')[-1].split('.')[0] + '.tmp')
+                            onnx_gen = subprocess.call(['python3', 'yolo2onnx.py', '--cfg_name', cfg_name, '--weights_name', weights_name])
+                            gs_weights_uri = os.path.join(output_uri, onnx_name)
+                            storage_client.upload_file(weights_name, gs_weights_uri, use_cache=False)
 
-                        with torch.no_grad():
-                            print("Calculating loss on validate data")
-                            epoch_losses, epoch_time_total, epoch_num_targets = run_epoch(
-                                label_prefix="validate", data_loader=validate_data_loader, epoch=epoch,
-                                model=model, num_epochs=num_epochs, num_steps=num_steps, optimizer=None,
-                                step=step, writer=writer)
-                            avg_epoch_loss = epoch_losses[0] / epoch_num_targets
-                            print('Average Validation Loss: {0:10.6f}'.format(avg_epoch_loss))
-
-                            if avg_epoch_loss > val_loss and epoch > min_epochs:
-                                val_loss_counter += 1
-                                print(f"Validation loss did not decrease for {val_loss_counter}"
-                                      f" consecutive check(s)")
-                            else:
-                                print("Validation loss decreased. Yay!!")
-                                val_loss_counter = 0
-                                val_loss = avg_epoch_loss
-                                ##### updating best result for optuna study #####
-                                result = open("logs/result.txt", "w" )
-                                result.write(str(avg_epoch_loss))
-                                result.close() 
-                                ###########################################
-                            validate.validate(dataloader=validate_data_loader, model=model, device=device, step=step[0], bbox_all=False, tensorboard_writer=writer,debug_mode=debug_mode,validation_mode=validation_mode)
-                            if val_loss_counter == val_tolerance:
-                                print("Validation loss stopped decreasing over the last " + str(val_tolerance) + " checkpoints, creating onnx file")
-                                with tempfile.NamedTemporaryFile() as tmpfile:
-                                    model.save_weights(tmpfile.name)
-                                    weights_name = tmpfile.name
-                                    cfg_name = os.path.join(tempfile.gettempdir(), model_cfg.split('/')[-1].split('.')[0] + '.tmp')
-                                    onnx_gen = subprocess.call(['python2', 'yolo2onnx.py', '--cfg_name', cfg_name, '--weights_name', weights_name])
-                                    gs_weights_uri = os.path.join(output_uri, onnx_name)
-                                    storage_client.upload_file(weights_name, gs_weights_uri, use_cache=False)
-
-                                    ##### also upload the corresponding cfg file #####
-                                    just_cfg_name = model_cfg.split('/')[-1].split('.')[0] + '.cfg'
-                                    gs_cfg_uri = os.path.join(output_uri, just_cfg_name)
-                                    storage_client.upload_file(model_cfg, gs_cfg_uri, use_cache=True)
-                                    ##################################################
-                                    try:
-                                        os.remove(onnx_name)
-                                    except:
-                                        pass
-                                    os.remove(cfg_name)
-                                break
-                if evaluate:
-                    validation = validate.validate(dataloader=validate_data_loader, model=model, device=device, step=-1, bbox_all=False, tensorboard_writer=None,debug_mode=debug_mode,validation_mode=validation_mode)
-        finally:
-            # ensure that we always save tensorboard data
-            for tensorboard_file in os.listdir(tensorboard_data_dir):
-                file_name = os.path.basename(tensorboard_file)
-                file_uri = os.path.join(output_uri, "tensorboard", file_name)
-                storage_client.upload_file(os.path.join(tensorboard_data_dir, tensorboard_file),
-                                           file_uri, use_cache=False)
+                            ##### also upload the corresponding cfg file #####
+                            just_cfg_name = model_cfg.split('/')[-1].split('.')[0] + '.cfg'
+                            gs_cfg_uri = os.path.join(output_uri, just_cfg_name)
+                            storage_client.upload_file(model_cfg, gs_cfg_uri, use_cache=True)
+                            ##################################################
+                            try:
+                                os.remove(onnx_name)
+                            except:
+                                pass
+                            os.remove(cfg_name)
+                        break
+        if evaluate:
+            validation = validate.validate(dataloader=validate_data_loader, model=model, device=device, step=-1, bbox_all=False, tensorboard_writer=None,debug_mode=debug_mode,validation_mode=validation_mode)
     return val_loss
 
 
