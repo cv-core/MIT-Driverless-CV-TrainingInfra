@@ -49,7 +49,9 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
         csv_reader = csv.reader(f)
 
         print("getting images' width and height")
-        for i, row in enumerate(tqdm(csv_reader,total=length,desc='Reading Images')):            
+        for i, row in enumerate(tqdm(csv_reader,total=length,desc='Reading Images')): 
+            if row < 1:
+                continue           
             ##### getting image width and height #####
             img_path = os.path.join(dataset_path,row[0])
             if not os.path.isfile(img_path):
