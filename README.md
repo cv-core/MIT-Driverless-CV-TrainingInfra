@@ -1,14 +1,14 @@
 # Accurate Low Latency Visual Perception for Autonomous Racing: Challenges Mechanisms and Practical Solutions
 
+<p align="center">
+<img src="https://user-images.githubusercontent.com/22118253/69769345-7966eb80-1152-11ea-8d51-ed4c1726127f.png" width="600">
+</p>
+
 This is the Pytorch side code for the accurate low latency visual perception system introduced by *[Kieran Strobel, Sibo Zhu, Raphael Chang, and Skanda Koppula. "Accurate Low Latency Visual Perception for Autonomous Racing: Challenges Mechanisms and Practical Solutions" ](https://static1.squarespace.com/static/5b79970e3c3a53723fab8cfc/t/5dd31c1eb16d2c02ed66408d/1574116397888/Accurate__Low_Latency_Visual_Perception_for_Autonomous_Racing__Challenges__Mechanisms__and_Practical_Solutions_.pdf)*. If you use the code, please cite the paper:
 
 ```
 BibTex Citation link will be given once the paper has been accepted
 ```
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/22118253/69769345-7966eb80-1152-11ea-8d51-ed4c1726127f.png" width="600">
-</p>
 
 Abstract
 
