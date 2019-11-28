@@ -32,7 +32,6 @@ class ConeDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, index):
-        print(self.images[index])
         image = cv2.imread(self.dataset_path+self.images[index])
         orig_image_size = image.shape
         image_name = self.images[index].split(".")[0]
