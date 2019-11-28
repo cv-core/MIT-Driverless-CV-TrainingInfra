@@ -70,11 +70,9 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
             #############################
 
             ##### preparing box dictionary for k-means #####
-            for j in range(2, len(row)):
-                if (row[j] != ''):
-                    h = int(row[j].split(', ')[2])
-                    w = int(row[j].split(', ')[3][:-1])
-                    box_dict[(img_h,img_w)] = box_dict.get((img_h, img_w), []) + [(h,w)]
+            h = int(row[2])
+            w = int(row[3])
+            box_dict[(img_h,img_w)] = box_dict.get((img_h, img_w), []) + [(h,w)]
             #############################
 
     ##### plot original #####
