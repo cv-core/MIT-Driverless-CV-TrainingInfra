@@ -1,0 +1,10 @@
+opencv_python==4.1.0.25
+numpy==1.16.4
+torch==1.1.0
+torchvision==0.3.0
+pandas==0.24.2
+optuna==0.19.0
+Pillow==6.2.1
+protobuf==3.11.0
+pymysql==0.9.3
+tqdm==4.39.0
