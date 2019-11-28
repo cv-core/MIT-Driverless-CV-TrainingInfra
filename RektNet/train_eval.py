@@ -104,12 +104,10 @@ def train_model(model, output_uri, dataloader, loss_function, optimizer, schedul
             # Save the latest weights
             gs_pt_uri = os.path.join(output_uri, "{epoch}_loss_{loss}.pt".format(epoch=epoch, loss=round(val_loss, 2)))
             print(f'Saving model to {gs_pt_uri}')
-            with tempfile.NamedTemporaryFile() as tmpfile:
-                checkpoint = {'epoch': epoch,
-                              'model': model.state_dict(),
-                              'optimizer': optimizer.state_dict()}
-                torch.save(checkpoint, tmpfile.name)
-                os.rename(tmpfile.name, gs_pt_uri)
+            checkpoint = {'epoch': epoch,
+                            'model': model.state_dict(),
+                            'optimizer': optimizer.state_dict()}
+            torch.save(checkpoint, gs_pt_uri)
         if tolerance >= max_tolerance:
             print(f"Training is stopped due; loss no longer decreases. Epoch {best_epoch} is has the best validation loss.")
             break
