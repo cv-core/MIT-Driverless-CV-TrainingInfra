@@ -33,7 +33,7 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
     img_h = 0
     updated_rows = []
     final_rows = []
-    in_csv_tempfile = input_csvs
+    in_csv_tempfile = csv_uri
     length = 0
 
     ##### getting csv length for progress bar #####
