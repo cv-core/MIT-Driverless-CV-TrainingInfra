@@ -10,13 +10,6 @@ from utils import vis_tensor_and_save, prep_image
 
 from keypoint_net import KeypointNet
 
-detection_tmp_path = "/tmp/detect/"
-
-if os.path.exists(detection_tmp_path):
-    shutil.rmtree(detection_tmp_path)  # delete output folder
-os.makedirs(detection_tmp_path)  # make new output folder
-
-
 def main(model,img,img_size,output,flip,rotate):
 
     output_path = output
@@ -52,8 +45,8 @@ def main(model,img,img_size,output,flip,rotate):
         chan -= cmin
         chan /= cmax - cmin
         out = np.concatenate((out, chan), axis=0)
-    cv2.imwrite(detection_tmp_path + img_name + "_hm.jpg", out * 255)
-    print(f'please check the output image here: {detection_tmp_path + img_name + "_hm.jpg", out * 255}')
+    cv2.imwrite(output_path + img_name + "_hm.jpg", out * 255)
+    print(f'please check the output image here: {output_path + img_name + "_hm.jpg", out * 255}')
 
 
     image = cv2.imread(image_filepath)
@@ -72,7 +65,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', help='path to model', type=str, required=True)
     parser.add_argument('--img', help='path to single image', type=str, default="gs://mit-dut-driverless-external/ConeColourLabels/vid_3_frame_22063_0.jpg")
     parser.add_argument('--img_size', help='image size', default=80, type=int)
-    parser.add_argument('--output', help='path to upload the detection', default="gs://mit-dut-driverless-internal/dumping-ground/keypoints_visualization/")
+    parser.add_argument('--output', help='path to upload the detection', default="outputs/visualization/")
 
     add_bool_arg('flip', default=False, help='flip image')
     add_bool_arg('rotate', default=False, help='rotate image')
