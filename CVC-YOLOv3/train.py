@@ -100,7 +100,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
     model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,no_object_loss=no_object_loss,object_loss=object_loss,vanilla_anchor=vanilla_anchor)
     img_width, img_height = model.img_size()
     bw  = model.get_bw()
-    validate_uri, train_uri, _, _ = model.get_links()
+    validate_uri, train_uri = model.get_links()
 
     if output_path == "automatic":
         current_month = datetime.now().strftime('%B').lower()

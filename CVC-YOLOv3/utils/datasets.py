@@ -47,7 +47,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             self.scales = []
         self.num_targets_per_image = None
 
-        list_path = storage_client.get_file(path)
+        list_path = path
 
         self.ts = ts
         self.debug_mode = debug_mode

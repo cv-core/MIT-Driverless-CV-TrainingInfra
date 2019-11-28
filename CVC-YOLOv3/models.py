@@ -198,7 +198,6 @@ class YOLOLayer(nn.Module):
             conf_mask_false = conf_mask - mask
 
             # Mask outputs to ignore non-existing objects
-            l_hyp = self.loss_constant
             loss_x = self.xy_loss * self.mse_loss(x[mask], tx[mask])
             loss_y = self.xy_loss * self.mse_loss(y[mask], ty[mask])
             loss_w = self.wh_loss * self.mse_loss(w[mask], tw[mask])
@@ -250,8 +249,8 @@ class Darknet(nn.Module):
         self.output_uri = os.path.join(self.gcp_prefix, current_month + '-' + current_year + '-experiments/' + config_path.split('.')[0].split('/')[-1])
         print("Output URI", self.output_uri)
 
-        self.validate_uri = os.path.join(self.gcp_prefix, self.hyperparams["validate_uri"])
-        self.train_uri = os.path.join(self.gcp_prefix, self.hyperparams["train_uri"])
+        self.validate_uri = self.hyperparams["validate_uri"]
+        self.train_uri = self.hyperparams["train_uri"]
         self.weights_uri = os.path.join(self.gcp_prefix, self.hyperparams["weights_uri"])
         self.num_train_images = int(self.hyperparams["num_train_images"])
         self.num_validate_images = int(self.hyperparams["num_validate_images"])
@@ -259,7 +258,6 @@ class Darknet(nn.Module):
         self.nms_thresh = float(self.hyperparams["nms_thresh"])
         self.iou_thresh = float(self.hyperparams["iou_thresh"])
         self.start_weights_dim = [int(x) for x in self.hyperparams["start_weights_dim"].split(',')]
-        self.loss_constant = [float(x) for x in self.hyperparams["loss_constant"].split(',')]
         self.conv_activation = self.hyperparams["conv_activation"]
 
         ##### loss constants #####
@@ -314,7 +312,7 @@ class Darknet(nn.Module):
         return self.img_width, self.img_height
     
     def get_links(self):
-        return self.validate_uri, self.train_uri, self.weights_uri, self.output_uri
+        return self.validate_uri, self.train_uri
     
     def num_images(self):
         return self.num_validate_images, self.num_train_images
