@@ -91,13 +91,11 @@ def train_model(model, output_uri, dataloader, loss_function, optimizer, schedul
 
             # Save model onnx for inference.
             if save_checkpoints:
-                with tempfile.NamedTemporaryFile() as tmpfile:
-                    onnx_uri = os.path.join(output_uri,f"best_keypoints_{input_size[0]}{input_size[1]}.onnx")
-                    onnx_model = KeypointNet(num_kpt, input_size, onnx_mode=True)
-                    onnx_model.load_state_dict(model.state_dict())
-                    torch.onnx.export(onnx_model, torch.randn(1, 3, input_size[0], input_size[1]), tmpfile.name)
-                    print(f"Saving ONNX model to {onnx_uri}")
-                    os.rename(tmpfile.name, onnx_uri)
+                onnx_uri = os.path.join(output_uri,f"best_keypoints_{input_size[0]}{input_size[1]}.onnx")
+                onnx_model = KeypointNet(num_kpt, input_size, onnx_mode=True)
+                onnx_model.load_state_dict(model.state_dict())
+                torch.onnx.export(onnx_model, torch.randn(1, 3, input_size[0], input_size[1]), onnx_uri)
+                print(f"Saving ONNX model to {onnx_uri}")
                 best_model = copy.deepcopy(model)
         else:
             tolerance += 1
