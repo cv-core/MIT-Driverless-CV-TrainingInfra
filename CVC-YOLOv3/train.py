@@ -11,6 +11,7 @@ import math
 import shutil
 import math
 
+from datetime import datetime
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -93,7 +94,7 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, epoch,
             step[0] += 1
     return epoch_losses, epoch_time_total, epoch_num_targets
 
-def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_epochs, num_steps, checkpoint_interval, 
+def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, output_path, num_epochs, num_steps, checkpoint_interval, 
         augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor,val_tolerance,min_epochs):
     input_arguments = list(locals().items())
 
@@ -101,7 +102,18 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_e
     model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,no_object_loss=no_object_loss,object_loss=object_loss,vanilla_anchor=vanilla_anchor)
     img_width, img_height = model.img_size()
     bw  = model.get_bw()
-    validate_uri, train_uri, _, output_uri = model.get_links()
+    validate_uri, train_uri, _, _ = model.get_links()
+
+    if output_path == "automatic"
+        current_month = datetime.now().strftime('%B').lower()
+        current_year = str(datetime.now().year)
+        if not os.path.exists(os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + model_cfg.split('.')[0].split('/')[-1])):
+            os.makedirs(os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + model_cfg.split('.')[0].split('/')[-1]))
+        output_uri = os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + model_cfg.split('.')[0].split('/')[-1])
+    else:
+        output_uri = output_path
+
+
     num_validate_images, num_train_images = model.num_images()
     conf_thresh, nms_thresh, iou_thresh = model.get_threshs()
     num_classes = model.get_num_classes()
@@ -206,10 +218,11 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_e
             # Update best loss
             if epoch % checkpoint_interval == 0 or epoch == num_epochs or step[0] >= num_steps:
                 # First, save the weights
-                gs_weights_uri = os.path.join(output_uri, "{epoch}.weights".format(epoch=epoch))
-                with tempfile.NamedTemporaryFile() as tmpfile:
-                    model.save_weights(tmpfile.name)
-                    storage_client.upload_file(tmpfile.name, gs_weights_uri, use_cache=False)
+                save_weights_uri = os.path.join(output_uri, "{epoch}.weights".format(epoch=epoch))
+                model.save_weights(save_weights_uri)
+                # with tempfile.NamedTemporaryFile() as tmpfile:
+                #     model.save_weights(tmpfile.name)
+                #     storage_client.upload_file(tmpfile.name, save_weights_uri, use_cache=False)
 
                 with torch.no_grad():
                     print("Calculating loss on validate data")
@@ -241,14 +254,9 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_e
                             weights_name = tmpfile.name
                             cfg_name = os.path.join(tempfile.gettempdir(), model_cfg.split('/')[-1].split('.')[0] + '.tmp')
                             onnx_gen = subprocess.call(['python3', 'yolo2onnx.py', '--cfg_name', cfg_name, '--weights_name', weights_name])
-                            gs_weights_uri = os.path.join(output_uri, onnx_name)
-                            storage_client.upload_file(weights_name, gs_weights_uri, use_cache=False)
-
-                            ##### also upload the corresponding cfg file #####
-                            just_cfg_name = model_cfg.split('/')[-1].split('.')[0] + '.cfg'
-                            gs_cfg_uri = os.path.join(output_uri, just_cfg_name)
-                            storage_client.upload_file(model_cfg, gs_cfg_uri, use_cache=True)
-                            ##################################################
+                            save_weights_uri = os.path.join(output_uri, onnx_name)
+                            os.rename(weights_name, save_weights_uri)
+                            # storage_client.upload_file(weights_name, save_weights_uri, use_cache=False)
                             try:
                                 os.remove(onnx_name)
                             except:
@@ -272,6 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('--optimizer_pick', type=str, default="Adam", help='choose optimizer between Adam and SGD')
     parser.add_argument('--model_cfg', type=str, help='cfg file path',required=True)
     parser.add_argument('--weights_path', type=str, help='initial weights path',required=True)
+    parser.add_argument('--output_path', type=str, help='output weights path, by default we will create a folder based on current system time and name of your cfg file',default="automatic")
     parser.add_argument('--num_epochs', type=int, default=2048, help='maximum number of epochs')
     parser.add_argument('--num_steps', type=int, default=8388608, help="maximum number of steps")
     parser.add_argument('--val_tolerance', type=int, default=3, help="tolerance for validation loss decreasing")
@@ -329,7 +338,8 @@ if __name__ == '__main__':
                   batch_size=opt.batch_size,
                   optimizer_pick=opt.optimizer_pick,
                   model_cfg=opt.model_cfg,
-                  weights_path=opt.weights_path,
+                  weights_path=opt.weights_path,,
+                  output_path=opt.output_path,
                   num_epochs=opt.num_epochs,
                   num_steps=(opt.num_steps if opt.vis_batch is 0 else opt.vis_batch),
                   checkpoint_interval=opt.checkpoint_interval,
