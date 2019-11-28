@@ -62,8 +62,30 @@ You can download image dataset and label csv from the link below and unzip them 
 
 [Initial weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
 
-2. Train the model with
+#### 1.1 Environment Setup (Optional)
 
 ```
-python train.py
+sudo python3 setup.py build develop
+```
+
+### 2.Training
+
+```
+python3 train.py --model_cfg=model_cfg/yolo_baseline.cfg --weights_path=dataset/sample-yolov3.weights
+```
+
+Once you've finished training, you can access the weights file in `./outputs/`
+
+### 3.Inference
+
+```
+python3 detect.py --model_cfg=model_cfg/yolo_baseline.cfg --target_path=<path to an image or video> --weights_path=<path to your trained weights file>
+```
+
+Once you've finished inference, you can access the result in `./outputs/visualization/`
+
+### Splits your own csv file 
+
+```
+python3 generate_kmeans_dataset_csvs.py --input_csvs=<path to your csv file that contains all the label> --dataset_path=<path to your image dataset>
 ```
