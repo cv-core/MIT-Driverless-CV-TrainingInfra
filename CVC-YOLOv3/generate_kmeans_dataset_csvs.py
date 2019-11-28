@@ -339,7 +339,7 @@ if __name__ == "__main__":
         arg_group.add_argument('--no_' + name, dest=name, action='store_false', help=("Do not " + help))
         parser.set_defaults(**{name:default})
 
-    parser.add_argument("--input_csvs", help="csv file to split", default = 'gs://mit-dut-driverless-internal/data-labels/Hive/hive-ai-round-0123-gs-uris.csv')
+    parser.add_argument("--input_csvs", help="csv file to split", default = 'dataset/all.csv')
     parser.add_argument('--num_clst', type=int, default=9, help='number of anchor boxes wish to be generated')
     parser.add_argument('--max_cone_height', default = 83, type = int, help='height of maximum sized cone to scale to\n')
     parser.add_argument('--min_cone_height', default = 10, type = int, help='height of minimum sized cone to scale to\n')
