@@ -29,7 +29,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 ########################################
 
-visualization_tmp_path = "/outputs/visualization/"
 warnings.filterwarnings("ignore")
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
@@ -94,7 +93,7 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, epoch,
     return epoch_losses, epoch_time_total, epoch_num_targets
 
 def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, output_path, dataset_path, num_epochs, num_steps, checkpoint_interval, 
-        augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor,val_tolerance,min_epochs):
+        augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode, upload_dataset,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor,val_tolerance,min_epochs):
     input_arguments = list(locals().items())
 
     print("Initializing model")
@@ -239,7 +238,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
                         result.write(str(avg_epoch_loss))
                         result.close() 
                         ###########################################
-                    validate.validate(dataloader=validate_data_loader, model=model, device=device, step=step[0], bbox_all=False,debug_mode=debug_mode,validation_mode=validation_mode)
+                    validate.validate(dataloader=validate_data_loader, model=model, device=device, step=step[0], bbox_all=False,debug_mode=debug_mode)
                     if val_loss_counter == val_tolerance:
                         print("Validation loss stopped decreasing over the last " + str(val_tolerance) + " checkpoints, creating onnx file")
                         with tempfile.NamedTemporaryFile() as tmpfile:
@@ -256,7 +255,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
                             os.remove(cfg_name)
                         break
         if evaluate:
-            validation = validate.validate(dataloader=validate_data_loader, model=model, device=device, step=-1, bbox_all=False, tensorboard_writer=None,debug_mode=debug_mode,validation_mode=validation_mode)
+            validation = validate.validate(dataloader=validate_data_loader, model=model, device=device, step=-1, bbox_all=False, tensorboard_writer=None,debug_mode=debug_mode)
     return val_loss
 
 
@@ -280,7 +279,6 @@ if __name__ == '__main__':
     parser.add_argument('--min_epochs', type=int, default=3, help="minimum training epochs")
     parser.add_argument("--checkpoint_interval", type=int, default=1, help="interval between saving model weights")
     # Default output location of visualization is "Buckets/mit-dut-driverless-internal/dumping-ground/visualization/"
-    #TO-DO
     parser.add_argument("--vis_batch", type=int, default=0, help="number of batches you wish to load and visualize before quitting training")
 
     ##### tile and scale #####
@@ -301,10 +299,7 @@ if __name__ == '__main__':
 
     add_bool_arg('vanilla_anchor', default=False, help="whether to use vanilla anchor boxes for training")
     add_bool_arg('debug_mode', default=False, help="whether to visualize the validate prediction during mAP calculation, need to make CUDA=False at first. If true then batch size will also automatically set to 1 and training shuffle will be False. ")
-    #TO-DELETE
-    add_bool_arg('validation_mode', default=False, help="whether to enable validation mode between iou and bounding box size")
     add_bool_arg('data_aug', default=False, help="whether to do all stable data augmentation")
-    #TO-DO
     add_bool_arg('upload_dataset', default=False, help="whether to uploading all tiles to GCP, have to enable --ts first")
 
     
@@ -356,7 +351,6 @@ if __name__ == '__main__':
                   sharpen=opt.augment_sharpen,
                   ts=opt.ts,
                   debug_mode=opt.debug_mode,
-                  validation_mode=opt.validation_mode,
                   upload_dataset=opt.upload_dataset,
                   xy_loss=opt.xy_loss,
                   wh_loss=opt.wh_loss,

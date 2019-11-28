@@ -58,7 +58,7 @@ def main(*, batch_size, model_cfg, weights_path, bbox_all, step, n_cpu):
     return validate(dataloader, model, device, step, bbox_all)
 
 # only works on a single class
-def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,validation_mode):
+def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode):
         # result = open("logs/result.txt", "w" )
 
         with torch.no_grad():
@@ -122,42 +122,6 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,va
                     if [] in ious.data.tolist():
                         continue
                     #######################################################
-
-                    ##### validation between iou and bounding box #####
-                    if validation_mode:
-                        print("#################################################")
-
-                        box_tensor_list = target_boxes.data.tolist()
-                        box_size_list = []
-
-                        for j in box_tensor_list:
-                            box_width = abs(j[0]-j[2])
-                            box_height = abs(j[1]-j[3])
-                            box_size_list.append([box_width,box_height])
-
-                        print(f"box_corner is {box_size_list}")
-                        print(f"box_list length is {len(box_size_list)}")
-
-                        iou_list = ious.data.tolist()
-                        best_iou_list = []
-                        for i in iou_list:
-                            if max(i) == 0:
-                                continue
-                            best_iou_list.append(max(i))
-                        
-                        print(f"best iou list: {best_iou_list}")
-                        print(f"iou list length is {len(best_iou_list)}")
-
-                        validation_textfile = open('logs/iou_validation.txt', 'a')
-                        if len(best_iou_list) <= len(box_size_list):
-                            for i in range(len(best_iou_list)):
-                                validation_textfile.write(f"{box_size_list[i]}:{best_iou_list[i]}\n")
-                            validation_textfile.close()
-                        else:
-                            for i in range(len(box_size_list)):
-                                validation_textfile.write(f"{box_size_list[i]}:{best_iou_list[i]}\n")
-                            validation_textfile.close()
-                    ###################################################
 
                     best_is = torch.argmax(ious, dim=1)
 
