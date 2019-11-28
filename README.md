@@ -32,7 +32,7 @@ Our final accuracy metrics for detecting traffic cones on the racing track:
 mAP: 89.35%     Recall: 92.77%     Precision: 86.94%      
 ```
 
-CVC-YOLOv3 Training dataset including annotation for *Formula Student Driverless Standard* is open-sourced ***[here](https://driverless.mit.edu/)***
+##### CVC-YOLOv3 Dataset with *Formula Student Standard* is open-sourced ***[here](https://storage.cloud.google.com/mit-driverless-open-source/YOLO_Dataset.zip?authuser=1)***
 
 ## RektNet
 
@@ -50,4 +50,4 @@ Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
 <img src="https://user-images.githubusercontent.com/22118253/69766182-cc39a680-1144-11ea-9ebc-5708019ba5d2.png" width="600">
 </p>
 
-RektNet Training dataset including annotation for *Formula Student Driverless Standard* is open-sourced ***[here](https://driverless.mit.edu/)***
+##### RektNet Dataset with *Formula Student Driverless Standard* is open-sourced ***[here](https://storage.cloud.google.com/mit-driverless-open-source/RektNet_Dataset.zip?authuser=1)***
