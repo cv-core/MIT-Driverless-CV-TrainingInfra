@@ -96,6 +96,13 @@ Then launch your Bayesian hyperparameter search
 python3 train_hyper.py --model_cfg=<path to cfg file> --study_name=<give it a proper name>
 ```
 
+#### Convert .weights to .onnx manually
+
+Though our training scrip will do automatical .weights->.onnx conversion, you can always do it manually
+```
+python3 yolo2onnx.py --cfg_name=<path to your cfg file> --weights_name=<path to your .weights file>
+```
+
 #### Splits your own csv file 
 
 ```

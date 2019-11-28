@@ -40,3 +40,22 @@ You can download image dataset and label csv from the link below and unzip them 
 [Image dataset](https://storage.cloud.google.com/mit-driverless-open-source/RektNet_Dataset.zip?authuser=1)
 
 [All label csv](https://storage.cloud.google.com/mit-driverless-open-source/rektnet-training/rektnet_label.csv?authuser=1)
+
+
+#### Run Bayesian hyperparameter search
+
+Before running the Bayesian hyperparameter search, make sure you know what specific hyperparameter that you wish to tuning on, and a reasonable operating range/options of that hyperparameter.
+
+Go into the `objective()` function of `train_hyper.py` edit your custom search
+
+Then launch your Bayesian hyperparameter search
+```
+python3 train_eval_hyper.py --study_name=<give it a proper name>
+```
+
+#### Convert .weights to .onnx manually
+
+Though our training scrip will do automatical .pt->.onnx conversion, you can always do it manually
+```
+python3 yolo2onnx.py --onnx_name=<path to output .onnx file> --weights_uri=<path to your .pt file>
+```

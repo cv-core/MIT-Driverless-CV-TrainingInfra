@@ -14,7 +14,7 @@ import os
 import sys
 
 
-def main(weights_uri,onnx_name,output_uri):
+def main(weights_uri,onnx_name):
     model = KeypointNet(7, (80, 80),onnx_mode=True)
 
     weights_path = weights_uri
@@ -30,10 +30,9 @@ if __name__ == "__main__":
     parser.add_argument('--onnx_name', default='new_keypoints.onnx',
                                             help='the name of output onnx file')
 
-    parser.add_argument('--weights_uri', default='gs://mit-dut-driverless-internal/models/keypoints_tiny_r01/143_loss_0.18.pt',
+    parser.add_argument('--weights_uri', required=True,
                                             help='Path to weights file')
-    parser.add_argument('--output_uri', default='gs://mit-dut-driverless-internal/dumping-ground/keypoints_gang/')
     args = parser.parse_args()
     
 
-    main(weights_uri=args.weights_uri, onnx_name=args.onnx_name,output_uri=args.output_uri)
+    main(weights_uri=args.weights_uri, onnx_name=args.onnx_name)
