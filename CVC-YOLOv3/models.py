@@ -24,7 +24,6 @@ def create_modules(module_defs,xy_loss,wh_loss,no_object_loss,object_loss,vanill
     onnx_height = int(hyperparams["onnx_height"])
     num_classes = int(hyperparams["classes"])
     leaky_slope = float(hyperparams["leaky_slope"])
-    loss_constant = [float(x) for x in hyperparams["loss_constant"].split(',')]
     conv_activation = hyperparams["conv_activation"]
     yolo_masks = [[int(y) for y in x.split(',')] for x in hyperparams["yolo_masks"].split('|')]
     ##### reading anchors from train.csv #####
@@ -105,7 +104,7 @@ def create_modules(module_defs,xy_loss,wh_loss,no_object_loss,object_loss,vanill
 
         elif module_def["type"] == "yolo":
             anchors = ([anchor_list[i] for i in yolo_masks[yolo_count]])
-            yolo_layer = YOLOLayer(anchors, num_classes, img_height, img_width, build_targets_ignore_thresh,loss_constant,conv_activation,xy_loss,wh_loss,object_loss,no_object_loss)
+            yolo_layer = YOLOLayer(anchors, num_classes, img_height, img_width, build_targets_ignore_thresh,conv_activation,xy_loss,wh_loss,object_loss,no_object_loss)
             modules.add_module("yolo_%d" % i, yolo_layer)
             yolo_count += 1
         module_list.append(modules)
@@ -121,7 +120,7 @@ class EmptyLayer(nn.Module):
 class YOLOLayer(nn.Module):
     """Detection layer"""
 
-    def __init__(self, anchors, num_classes, img_height, img_width, build_targets_ignore_thresh, loss_constant, conv_activation, xy_loss, wh_loss, object_loss, no_object_loss):
+    def __init__(self, anchors, num_classes, img_height, img_width, build_targets_ignore_thresh, conv_activation, xy_loss, wh_loss, object_loss, no_object_loss):
         super(YOLOLayer, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
@@ -134,7 +133,6 @@ class YOLOLayer(nn.Module):
         self.wh_loss = wh_loss
         self.no_object_loss = no_object_loss
         self.object_loss = object_loss
-        self.loss_constant = loss_constant
         self.conv_activation = conv_activation
 
         self.mse_loss = nn.MSELoss(size_average=True)  # Coordinate loss
@@ -205,8 +203,10 @@ class YOLOLayer(nn.Module):
             loss_y = self.xy_loss * self.mse_loss(y[mask], ty[mask])
             loss_w = self.wh_loss * self.mse_loss(w[mask], tw[mask])
             loss_h = self.wh_loss * self.mse_loss(h[mask], th[mask])
-
-            loss_cls = l_hyp[2] * (1 / nB) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
+            #We are only doing single class detection, so we set loss_cls always to be 0. You can always make it to another value if you wish to do multi-class training
+            loss_cls_constant = 0
+            loss_cls = loss_cls_constant * (1 / nB) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
+            
             loss_noobj = self.no_object_loss * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
             loss_obj = self.object_loss * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
             loss = loss_x + loss_y + loss_w + loss_h + loss_noobj + loss_obj + loss_cls
