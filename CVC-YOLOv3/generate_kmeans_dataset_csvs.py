@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-gcloud_tmp_path = "/outputs/visualization/"
+gcloud_tmp_path = "outputs/visualization/"
 
 def assignment(boxes, centroids):
     for i in centroids:
