@@ -338,7 +338,7 @@ if __name__ == '__main__':
                   batch_size=opt.batch_size,
                   optimizer_pick=opt.optimizer_pick,
                   model_cfg=opt.model_cfg,
-                  weights_path=opt.weights_path,,
+                  weights_path=opt.weights_path,
                   output_path=opt.output_path,
                   num_epochs=opt.num_epochs,
                   num_steps=(opt.num_steps if opt.vis_batch is 0 else opt.vis_batch),
