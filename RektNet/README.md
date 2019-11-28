@@ -4,8 +4,8 @@ This is our custom Key Points detection network
 
 ## Requirements:
 
-* CUDA >= 10.1
-* python=3.6
+* CUDA>=10.1
+* python==3.6
 * opencv_python==4.1.0.25
 * numpy==1.16.4
 * torch==1.1.0

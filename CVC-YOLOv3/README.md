@@ -4,8 +4,8 @@ The repo is originally forked from https://github.com/ultralytics/yolov3 and con
 
 ## Requirements:
 
-* CUDA >= 10.1
-* python=3.6
+* CUDA>=10.1
+* python==3.6
 * numpy==1.16.4
 * matplotlib==3.1.0
 * torchvision==0.3.0
