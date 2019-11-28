@@ -9,7 +9,6 @@ import csv
 
 from utils.parse_config import parse_model_config
 from utils.utils import build_targets
-from utils import storage_client
 
 vanilla_anchor_list = [[10, 13], [16, 30], [33, 23], [30, 61], [62, 45], [59, 119], [116, 90], [156, 198], [373, 326]]
 
@@ -313,10 +312,6 @@ class Darknet(nn.Module):
     def forward(self, x, targets=None):
         is_training = targets is not None
         output = []
-        first_layer = []
-        second_layer = []
-        third_layer = []
-        layer_counter = 0
 
         if is_training:
             total_losses = torch.zeros(6, device=targets.device)
@@ -339,16 +334,6 @@ class Darknet(nn.Module):
                 else:
                     x = module(x)
                 output.append(x)
-                if layer_counter == 0:
-                    first_layer.append(x)
-
-                elif layer_counter == 1:
-                    second_layer.append(x)
-                elif layer_counter == 2:
-                    third_layer.append(x)
-                layer_counter += 1
-            layer_outputs.append(x)
-        # return (sum(output), *total_losses) if is_training else (torch.cat(output, 1),torch.cat(first_layer, 1),torch.cat(second_layer, 1),torch.cat(third_layer, 1))
         return (sum(output), *total_losses) if is_training else torch.cat(output, 1)
     def load_weights(self, weights_path, start_weight_dim):
         # Open the weights file
