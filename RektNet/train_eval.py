@@ -256,9 +256,9 @@ def main():
         os.system('sudo shutdown now')
 
     # Create pytorch dataloaders for train and validation sets.
-    train_dataset = ConeDataset(images=train_images, labels=train_labels, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
+    train_dataset = ConeDataset(images=train_images, labels=train_labels, dataset_path=args.dataset_path, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
     train_dataloader = DataLoader(train_dataset, batch_size= batch_size, shuffle=False, num_workers=0)
-    val_dataset = ConeDataset(images=val_images, labels=val_labels, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
+    val_dataset = ConeDataset(images=val_images, labels=val_labels, dataset_path=args.dataset_path, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
     val_dataloader = DataLoader(val_dataset, batch_size= 1, shuffle=False, num_workers=0)
 
     # Define model, optimizer and loss function.

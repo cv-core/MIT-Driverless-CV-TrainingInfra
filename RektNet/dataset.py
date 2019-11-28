@@ -19,7 +19,7 @@ def print_tensor_stats(x, name):
     print(f"\t\t{name}: {avg},{min(flattened_x)},{max(flattened_x)}")
 
 class ConeDataset(Dataset):
-    def __init__(self, images, labels, target_image_size, save_checkpoints, vis_dataloader, transform=None):
+    def __init__(self, images, labels, dataset_path, target_image_size, save_checkpoints, vis_dataloader, transform=None):
         self.images = images
         self.labels = labels
         self.target_image_size = target_image_size
@@ -32,7 +32,7 @@ class ConeDataset(Dataset):
 
     def __getitem__(self, index):
         print(self.images[index])
-        image = cv2.imread("./gs/"+self.images[index])
+        image = cv2.imread(dataset_path+self.images[index])
         orig_image_size = image.shape
         image_name = self.images[index].split(".")[0]
         image = prep_image(image=image,target_image_size=self.target_image_size)
