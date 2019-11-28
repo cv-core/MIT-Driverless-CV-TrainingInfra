@@ -92,7 +92,7 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, epoch,
             step[0] += 1
     return epoch_losses, epoch_time_total, epoch_num_targets
 
-def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, output_path, num_epochs, num_steps, checkpoint_interval, 
+def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, output_path, dataset_path, num_epochs, num_steps, checkpoint_interval, 
         augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor,val_tolerance,min_epochs):
     input_arguments = list(locals().items())
 
@@ -122,7 +122,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
     with tempfile.TemporaryDirectory() as tensorboard_data_dir:
         print("Initializing data loaders")
         train_data_loader = torch.utils.data.DataLoader(
-            ImageLabelDataset(train_uri, width=img_width, height=img_height, augment_hsv=augment_hsv,
+            ImageLabelDataset(train_uri, dataset_path=dataset_path, width=img_width, height=img_height, augment_hsv=augment_hsv,
                                 augment_affine=augment_affine, num_images=num_train_images,
                                 bw=bw, n_cpu=num_cpu, lr_flip=lr_flip, ud_flip=ud_flip,vis_batch=vis_batch,data_aug=data_aug,blur=blur,salt=salt,noise=noise,contrast=contrast,sharpen=sharpen,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
             batch_size=(1 if debug_mode else batch_size),
@@ -132,7 +132,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
         print("Num train images: ", len(train_data_loader.dataset))
 
         validate_data_loader = torch.utils.data.DataLoader(
-            ImageLabelDataset(validate_uri, width=img_width, height=img_height, augment_hsv=False,
+            ImageLabelDataset(validate_uri, dataset_path=dataset_pathm width=img_width, height=img_height, augment_hsv=False,
                                 augment_affine=False, num_images=num_validate_images,
                                 bw=bw, n_cpu=num_cpu, lr_flip=False, ud_flip=False,vis_batch=vis_batch,data_aug=False,blur=False,salt=False,noise=False,contrast=False,sharpen=False,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
             batch_size=(1 if debug_mode else batch_size),
@@ -272,6 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_cfg', type=str, help='cfg file path',required=True)
     parser.add_argument('--weights_path', type=str, help='initial weights path',required=True)
     parser.add_argument('--output_path', type=str, help='output weights path, by default we will create a folder based on current system time and name of your cfg file',default="automatic")
+    parser.add_argument('--dataset_path', type=str, help='path to image dataset',default="dataset/YOLO_Dataset/")
     parser.add_argument('--num_epochs', type=int, default=2048, help='maximum number of epochs')
     parser.add_argument('--num_steps', type=int, default=8388608, help="maximum number of steps")
     parser.add_argument('--val_tolerance', type=int, default=3, help="tolerance for validation loss decreasing")
@@ -333,6 +334,7 @@ if __name__ == '__main__':
                   model_cfg=opt.model_cfg,
                   weights_path=opt.weights_path,
                   output_path=opt.output_path,
+                  dataset_path=opt.dataset_path,
                   num_epochs=opt.num_epochs,
                   num_steps=(opt.num_steps if opt.vis_batch is 0 else opt.vis_batch),
                   checkpoint_interval=opt.checkpoint_interval,

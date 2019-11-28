@@ -40,7 +40,7 @@ def download_image(image_uri):
         raise Exception("could not download image: {image_uri}".format(image_uri=image_uri))
 
 class ImageLabelDataset(torch.utils.data.Dataset, object):
-    def __init__(self, path, width, height, augment_affine, num_images, augment_hsv, lr_flip, ud_flip, bw, n_cpu, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts,debug_mode, upload_dataset):
+    def __init__(self, path, dataset_path, width, height, augment_affine, num_images, augment_hsv, lr_flip, ud_flip, bw, n_cpu, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts,debug_mode, upload_dataset):
         self.img_files = []
         self.labels = []
         if ts:
@@ -64,7 +64,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                 img_boxes = torch.tensor(img_boxes, dtype=torch.float)
                 if (img_boxes < 0).sum() > 0:
-                    warnings.warn("Image {image} at line {line} has negative bounding box coordinates; skipping".format(image=row[1], line=i+1))
+                    warnings.warn("Image {image} at line {line} has negative bounding box coordinates; skipping".format(image=os.path.join(dataset_path,row[0]), line=i+1))
                     continue
 
                 img_width, img_height = int(row[2]), int(row[3])
@@ -78,10 +78,10 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                 if self.ts:
                     _,_,n_patches,_,_ = get_patch_spacings(new_width+horiz_pad*2, new_height+vert_pad*2, width, height)
-                    self.img_files.extend([row[1]]*n_patches)
+                    self.img_files.extend([os.path.join(dataset_path,row[0])]*n_patches)
                     self.labels.extend([img_boxes]*n_patches)
                 else:
-                    self.img_files.append(row[1])
+                    self.img_files.append(os.path.join(dataset_path,row[0]))
                     self.labels.append(img_boxes)
                 if ts:
                     self.scales.extend([float(row[4])]*n_patches)
