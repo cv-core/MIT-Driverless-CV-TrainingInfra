@@ -27,9 +27,8 @@ def create_modules(module_defs,xy_loss,wh_loss,no_object_loss,object_loss,vanill
     conv_activation = hyperparams["conv_activation"]
     yolo_masks = [[int(y) for y in x.split(',')] for x in hyperparams["yolo_masks"].split('|')]
     ##### reading anchors from train.csv #####
-    gcp_prefix = hyperparams["gcp_prefix"]
-    csv_uri = os.path.join(gcp_prefix, hyperparams["train_uri"])
-    training_csv_tempfile = storage_client.get_file(csv_uri, use_cache=False)
+    csv_uri = hyperparams["train_uri"]
+    training_csv_tempfile = csv_uri
     with open(training_csv_tempfile) as f:
         csv_reader = csv.reader(f)
         row = next(csv_reader)
@@ -242,16 +241,11 @@ class Darknet(nn.Module):
         else:
             print('Channels in cfg file is not set properly, making it colour')
             self.bw = False
-        self.gcp_prefix = self.hyperparams["gcp_prefix"]
         current_month = datetime.now().strftime('%B').lower()
         current_year = str(datetime.now().year)
 
-        self.output_uri = os.path.join(self.gcp_prefix, current_month + '-' + current_year + '-experiments/' + config_path.split('.')[0].split('/')[-1])
-        print("Output URI", self.output_uri)
-
         self.validate_uri = self.hyperparams["validate_uri"]
         self.train_uri = self.hyperparams["train_uri"]
-        self.weights_uri = os.path.join(self.gcp_prefix, self.hyperparams["weights_uri"])
         self.num_train_images = int(self.hyperparams["num_train_images"])
         self.num_validate_images = int(self.hyperparams["num_validate_images"])
         self.conf_thresh = float(self.hyperparams["conf_thresh"])
@@ -266,9 +260,8 @@ class Darknet(nn.Module):
         self.no_object_loss=no_object_loss
         self.object_loss=object_loss
         ##### reading anchors from train.csv #####
-        gcp_prefix = self.hyperparams["gcp_prefix"]
-        csv_uri = os.path.join(gcp_prefix, self.hyperparams["train_uri"])
-        training_csv_tempfile = storage_client.get_file(csv_uri, use_cache=False)
+        csv_uri = self.hyperparams["train_uri"]
+        training_csv_tempfile = csv_uri
         with open(training_csv_tempfile) as f:
             csv_reader = csv.reader(f)
             row = next(csv_reader)
