@@ -50,7 +50,7 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
 
         print("getting images' width and height")
         for i, row in enumerate(tqdm(csv_reader,total=length,desc='Reading Images')): 
-            if row < 1:
+            if i < 1:
                 continue           
             ##### getting image width and height #####
             img_path = os.path.join(dataset_path,row[0])
