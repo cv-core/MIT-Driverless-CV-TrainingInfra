@@ -33,7 +33,7 @@ warnings.filterwarnings("ignore")
 detection_tmp_path = "/tmp/detect/"
 
 
-def main(target_path,output_uri,weights_path,model_cfg,conf_thres,nms_thres,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor):
+def main(target_path,output_path,weights_path,model_cfg,conf_thres,nms_thres,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor):
 
     cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if cuda else 'cpu')
@@ -51,7 +51,7 @@ def main(target_path,output_uri,weights_path,model_cfg,conf_thres,nms_thres,xy_l
     model.to(device, non_blocking=True)
 
     detect(target_path,
-           output_uri,
+           output_path,
            model,
            device=device,
            conf_thres=conf_thres,
@@ -107,7 +107,7 @@ def single_img_detect(target_path,model,device,conf_thres,nms_thres):
         return target_path
 
 def detect(target_path,
-           output_uri,
+           output_path,
            model,
            device,
            conf_thres,
@@ -178,7 +178,7 @@ def detect(target_path,
                 size = (width,height)
                 frame_array.append(img)
 
-            local_output_uri = detection_tmp_path + raw_file_name + ".mp4"
+            local_output_uri = output_path + raw_file_name + ".mp4"
             
             video_output = cv2.VideoWriter(local_output_uri,cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         parser.set_defaults(**{name:default})
     parser.add_argument('--model_cfg', type=str, default='model_cfg/yolo_baseline.cfg')
     parser.add_argument('--target_path', type=str, help='path to target image/video')
-    parser.add_argument('--output_uri', type=str, default="gs://mit-dut-driverless-internal/dumping-ground/detection/")
+    parser.add_argument('--output_path', type=str, default="/outputs/visualization/")
     parser.add_argument('--weights_path', type=str, help='path to weights file')
     parser.add_argument('--conf_thres', type=float, default=0.8, help='object confidence threshold')
     parser.add_argument('--nms_thres', type=float, default=0.25, help='IoU threshold for non-maximum suppression')
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     opt = parser.parse_args()
 
     main(target_path=opt.target_path,
-         output_uri=opt.output_uri,
+         output_path=opt.output_path,
          weights_path=opt.weights_path,
          model_cfg=opt.model_cfg,
          conf_thres=opt.conf_thres,
