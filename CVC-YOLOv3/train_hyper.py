@@ -50,14 +50,14 @@ if __name__ == "__main__":
         if opt.loss_study:
             xy_loss = trial.suggest_uniform('xy_loss', 1.6, 2.4)
             wh_loss = trial.suggest_uniform('wh_loss', 1.28, 1.92)
-            background_loss = trial.suggest_uniform('background_loss', 20.0, 30.0)
-            foreground_loss = trial.suggest_uniform('foreground_loss', 0.08, 0.12)
+            no_object_loss = trial.suggest_uniform('no_object_loss', 20.0, 30.0)
+            object_loss = trial.suggest_uniform('object_loss', 0.08, 0.12)
             
         else:
             xy_loss = 2
             wh_loss = 1.6
-            background_loss = 25
-            foreground_loss = 0.1
+            no_object_loss = 25
+            object_loss = 0.1
         ######################################
 
         if opt.ts_study:
@@ -78,8 +78,8 @@ if __name__ == "__main__":
             "ts": tile,
             "xy_loss": xy_loss,
             "wh_loss": wh_loss,
-            "background_loss": background_loss,
-            "foreground_loss": foreground_loss,
+            "no_object_loss": no_object_loss,
+            "object_loss": object_loss,
             "num_epochs": opt.num_epochs,
             "checkpoint_interval": opt.checkpoint_interval,
             "optimizer_pick": optimizer_pick,

@@ -33,7 +33,7 @@ warnings.filterwarnings("ignore")
 detection_tmp_path = "/tmp/detect/"
 
 
-def main(target_path,output_path,weights_path,model_cfg,conf_thres,nms_thres,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor):
+def main(target_path,output_path,weights_path,model_cfg,conf_thres,nms_thres,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor):
 
     cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if cuda else 'cpu')
@@ -44,7 +44,7 @@ def main(target_path,output_path,weights_path,model_cfg,conf_thres,nms_thres,xy_
         torch.cuda.manual_seed_all(0)
         torch.backends.cudnn.benchmark = True
         torch.cuda.empty_cache()
-    model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,background_loss=background_loss,foreground_loss=foreground_loss,vanilla_anchor=vanilla_anchor)
+    model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,no_object_loss=no_object_loss,object_loss=object_loss,vanilla_anchor=vanilla_anchor)
 
     # Load weights
     model.load_weights(weights_path, model.get_start_weight_dim())
@@ -209,8 +209,8 @@ if __name__ == '__main__':
     ##### Loss Constants #####
     parser.add_argument('--xy_loss', type=float, default=2, help='confidence loss for x and y')
     parser.add_argument('--wh_loss', type=float, default=1.6, help='confidence loss for width and height')
-    parser.add_argument('--background_loss', type=float, default=25, help='confidence loss for background')
-    parser.add_argument('--foreground_loss', type=float, default=0.1, help='confidence loss for foreground')
+    parser.add_argument('--no_object_loss', type=float, default=25, help='confidence loss for background')
+    parser.add_argument('--object_loss', type=float, default=0.1, help='confidence loss for foreground')
 
     opt = parser.parse_args()
 
@@ -222,6 +222,6 @@ if __name__ == '__main__':
          nms_thres=opt.nms_thres,
          xy_loss=opt.xy_loss,
          wh_loss=opt.wh_loss,
-         background_loss=opt.background_loss,
-         foreground_loss=opt.foreground_loss,
+         no_object_loss=opt.no_object_loss,
+         object_loss=opt.object_loss,
          vanilla_anchor=opt.vanilla_anchor)
