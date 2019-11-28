@@ -26,7 +26,7 @@ gcloud_vis_path = "gs://mit-dut-driverless-internal/dumping-ground/visualization
 gcloud_tmp_path = "/tmp/"
 ################################################
 
-def main(*, batch_size, model_cfg, bbox_all, step, n_cpu):
+def main(*, batch_size, model_cfg, weights_path, bbox_all, step, n_cpu):
     cuda = torch.cuda.is_available()
     device = torch.device('cuda:0' if cuda else 'cpu')
     random.seed(0)
@@ -44,7 +44,6 @@ def main(*, batch_size, model_cfg, bbox_all, step, n_cpu):
     num_images, _ = model.num_images()
 
     # Load weights
-    weights_path = storage_client.get_file(weights_uri)
     model.load_weights(weights_path, model.get_start_weight_dim())
     model.to(device, non_blocking=True)
 
@@ -206,7 +205,7 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,va
                             visualize_and_save_to_gcloud(pil_img, vis_label, gcloud_save_path, tmp_path,box_color="red")
                             print("Prediction visualization uploaded")
                         #######################################################################################
-                        
+
                 mean_mAP = torch.tensor(mAPs, dtype=torch.float).mean().item()
                 mean_R = torch.tensor(mR, dtype=torch.float).mean().item()
                 mean_P = torch.tensor(mP, dtype=torch.float).mean().item()
@@ -230,9 +229,10 @@ if __name__ == '__main__':
     
     parser.add_argument('--batch_size', type=int, help='size of each image batch')
     parser.add_argument('--model_cfg', type=str, help='path to model config file')
+    parser.add_argument('--weights_path', type=str, help='initial weights path',required=True)
     add_bool_arg('bbox_all', default=False, help="whether to draw bounding boxes on all images")
     parser.add_argument('--step', type=int, default=-1, help='the step at which these images were generated')
     parser.add_argument('--n_cpu', type=int, default=0, help='number of cpu threads to use during batch generation')
 
     opt = parser.parse_args()
-    results = main(batch_size=opt.batch_size, model_cfg=opt.model_cfg, bbox_all=opt.bbox_all, step=opt.step, n_cpu=opt.n_cpu)
+    results = main(batch_size=opt.batch_size, model_cfg=opt.model_cfg, weights_path=opt.weights_path, bbox_all=opt.bbox_all, step=opt.step, n_cpu=opt.n_cpu)
