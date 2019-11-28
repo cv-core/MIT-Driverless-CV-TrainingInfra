@@ -162,8 +162,6 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
 
         print("Starting learning rate: " + str(lr))
 
-        print("Datasets: " + train_uri.split('/')[5])
-
         if ts:
             print("Tile and scale mode [on]")
         else:
