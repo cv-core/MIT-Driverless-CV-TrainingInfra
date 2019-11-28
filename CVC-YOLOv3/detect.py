@@ -204,7 +204,7 @@ if __name__ == '__main__':
         parser.set_defaults(**{name:default})
     parser.add_argument('--model_cfg', type=str, default='model_cfg/yolo_baseline.cfg')
     parser.add_argument('--target_path', type=str, help='path to target image/video')
-    parser.add_argument('--output_path', type=str, default="/outputs/visualization/")
+    parser.add_argument('--output_path', type=str, default="outputs/visualization/")
     parser.add_argument('--weights_path', type=str, help='path to weights file')
     parser.add_argument('--conf_thres', type=float, default=0.8, help='object confidence threshold')
     parser.add_argument('--nms_thres', type=float, default=0.25, help='IoU threshold for non-maximum suppression')
