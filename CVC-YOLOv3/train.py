@@ -98,11 +98,11 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, ep
     return epoch_losses, epoch_time_total, epoch_num_targets
 
 def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_epochs, num_steps, checkpoint_interval, 
-        augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor,val_tolerance,min_epochs):
+        augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor,val_tolerance,min_epochs):
     input_arguments = list(locals().items())
 
     print("Initializing model")
-    model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,background_loss=background_loss,foreground_loss=foreground_loss,vanilla_anchor=vanilla_anchor)
+    model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,no_object_loss=no_object_loss,object_loss=object_loss,vanilla_anchor=vanilla_anchor)
     img_width, img_height = model.img_size()
     bw  = model.get_bw()
     validate_uri, train_uri, _, output_uri = model.get_links()
@@ -329,8 +329,8 @@ if __name__ == '__main__':
     ##### Loss Constants #####
     parser.add_argument('--xy_loss', type=float, default=2, help='confidence loss for x and y')
     parser.add_argument('--wh_loss', type=float, default=1.6, help='confidence loss for width and height')
-    parser.add_argument('--background_loss', type=float, default=25, help='confidence loss for background')
-    parser.add_argument('--foreground_loss', type=float, default=0.1, help='confidence loss for foreground')
+    parser.add_argument('--no_object_loss', type=float, default=25, help='confidence loss for non-objectness')
+    parser.add_argument('--object_loss', type=float, default=0.1, help='confidence loss for objectness')
     
     opt = parser.parse_args()
    
@@ -371,8 +371,8 @@ if __name__ == '__main__':
                   upload_dataset=opt.upload_dataset,
                   xy_loss=opt.xy_loss,
                   wh_loss=opt.wh_loss,
-                  background_loss=opt.background_loss,
-                  foreground_loss=opt.foreground_loss,
+                  no_object_loss=opt.no_object_loss,
+                  object_loss=opt.object_loss,
                   vanilla_anchor=opt.vanilla_anchor,
                   val_tolerance=opt.val_tolerance,
                   min_epochs=opt.min_epochs

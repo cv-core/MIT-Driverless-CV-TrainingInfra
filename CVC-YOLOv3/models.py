@@ -13,7 +13,7 @@ from utils import storage_client
 
 vanilla_anchor_list = [[10, 13], [16, 30], [33, 23], [30, 61], [62, 45], [59, 119], [116, 90], [156, 198], [373, 326]]
 
-def create_modules(module_defs,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor):
+def create_modules(module_defs,xy_loss,wh_loss,no_object_loss,object_loss,vanilla_anchor):
     """
     Constructs module list of layer blocks from module configuration in module_defs
     """
@@ -105,7 +105,7 @@ def create_modules(module_defs,xy_loss,wh_loss,background_loss,foreground_loss,v
 
         elif module_def["type"] == "yolo":
             anchors = ([anchor_list[i] for i in yolo_masks[yolo_count]])
-            yolo_layer = YOLOLayer(anchors, num_classes, img_height, img_width, build_targets_ignore_thresh,loss_constant,conv_activation,xy_loss,wh_loss,foreground_loss,background_loss)
+            yolo_layer = YOLOLayer(anchors, num_classes, img_height, img_width, build_targets_ignore_thresh,loss_constant,conv_activation,xy_loss,wh_loss,object_loss,no_object_loss)
             modules.add_module("yolo_%d" % i, yolo_layer)
             yolo_count += 1
         module_list.append(modules)
@@ -121,7 +121,7 @@ class EmptyLayer(nn.Module):
 class YOLOLayer(nn.Module):
     """Detection layer"""
 
-    def __init__(self, anchors, num_classes, img_height, img_width, build_targets_ignore_thresh, loss_constant, conv_activation, xy_loss, wh_loss, foreground_loss, background_loss):
+    def __init__(self, anchors, num_classes, img_height, img_width, build_targets_ignore_thresh, loss_constant, conv_activation, xy_loss, wh_loss, object_loss, no_object_loss):
         super(YOLOLayer, self).__init__()
         self.anchors = anchors
         self.num_anchors = len(anchors)
@@ -132,8 +132,8 @@ class YOLOLayer(nn.Module):
         self.ignore_thres = build_targets_ignore_thresh
         self.xy_loss = xy_loss
         self.wh_loss = wh_loss
-        self.background_loss = background_loss
-        self.foreground_loss = foreground_loss
+        self.no_object_loss = no_object_loss
+        self.object_loss = object_loss
         self.loss_constant = loss_constant
         self.conv_activation = conv_activation
 
@@ -200,25 +200,15 @@ class YOLOLayer(nn.Module):
             conf_mask_false = conf_mask - mask
 
             # Mask outputs to ignore non-existing objects
-            #l_hyp = [1.367 / 2.0, 0.1057 / 2.0, 0.1181, 8.409]
             l_hyp = self.loss_constant
-            # loss_x = l_hyp[0] * self.mse_loss(x[mask], tx[mask])
             loss_x = self.xy_loss * self.mse_loss(x[mask], tx[mask])
-            # loss_y = l_hyp[0] * self.mse_loss(y[mask], ty[mask])
             loss_y = self.xy_loss * self.mse_loss(y[mask], ty[mask])
-            # loss_w = l_hyp[1] * self.mse_loss(w[mask], tw[mask])
             loss_w = self.wh_loss * self.mse_loss(w[mask], tw[mask])
-            # loss_h = l_hyp[1] * self.mse_loss(h[mask], th[mask])
             loss_h = self.wh_loss * self.mse_loss(h[mask], th[mask])
 
             loss_cls = l_hyp[2] * (1 / nB) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
-            # loss_cls = 0 * (1 / nB) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
-
-            ##### first term - loss for labeling background as cone, second term - loss for not labeling cones (I think) #####
-            # loss_conf_b = l_hyp[3] * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
-            loss_conf_b = self.background_loss * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
-            # loss_conf_f = l_hyp[4] * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
-            loss_conf_f = self.foreground_loss * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
+            loss_conf_b = self.no_object_loss * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
+            loss_conf_f = self.object_loss * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
             loss = loss_x + loss_y + loss_w + loss_h + loss_conf_b + loss_conf_f + loss_cls
 
             return loss, torch.tensor((loss_x, loss_y, loss_w, loss_h, loss_conf_f, loss_conf_b), device=targets.device)
@@ -235,11 +225,11 @@ class YOLOLayer(nn.Module):
 class Darknet(nn.Module):
     """YOLOv3 object detection model"""
 
-    def __init__(self, config_path, xy_loss, wh_loss, background_loss, foreground_loss,vanilla_anchor):
+    def __init__(self, config_path, xy_loss, wh_loss, no_object_loss, object_loss,vanilla_anchor):
         super(Darknet, self).__init__()
         self.module_defs = parse_model_config(config_path)
         
-        self.hyperparams, self.module_list = create_modules(module_defs=self.module_defs,xy_loss=xy_loss,wh_loss=wh_loss,background_loss=background_loss,foreground_loss=foreground_loss,vanilla_anchor=vanilla_anchor)
+        self.hyperparams, self.module_list = create_modules(module_defs=self.module_defs,xy_loss=xy_loss,wh_loss=wh_loss,no_object_loss=no_object_loss,object_loss=object_loss,vanilla_anchor=vanilla_anchor)
         self.img_width = int(self.hyperparams["width"])
         self.img_height = int(self.hyperparams["height"])
         # in order to help train.py defines the onnx filename since it is not defined by yolo2onnx.py
@@ -275,8 +265,8 @@ class Darknet(nn.Module):
         ##### loss constants #####
         self.xy_loss=xy_loss
         self.wh_loss=wh_loss
-        self.background_loss=background_loss
-        self.foreground_loss=foreground_loss
+        self.no_object_loss=no_object_loss
+        self.object_loss=object_loss
         ##### reading anchors from train.csv #####
         gcp_prefix = self.hyperparams["gcp_prefix"]
         csv_uri = os.path.join(gcp_prefix, self.hyperparams["train_uri"])
@@ -306,7 +296,7 @@ class Darknet(nn.Module):
         return self.bw
     
     def get_loss_constant(self):
-        return [self.xy_loss,self.wh_loss,self.background_loss,self.foreground_loss]
+        return [self.xy_loss,self.wh_loss,self.no_object_loss,self.object_loss]
 
     def get_conv_activation(self):
         return self.conv_activation
