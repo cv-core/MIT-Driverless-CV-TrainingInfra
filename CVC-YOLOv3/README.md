@@ -80,7 +80,7 @@ Once you've finished training, you can access the weights file in `./outputs/`
 ### 3.Inference
 
 ```
-python3 detect.py --model_cfg=model_cfg/yolo_baseline.cfg --target_path=<path to an image or video> --weights_path=<path to your trained weights file>
+python3 detect.py --model_cfg=<path to cfg file> --target_path=<path to an image or video> --weights_path=<path to your trained weights file>
 ```
 
 Once you've finished inference, you can access the result in `./outputs/visualization/`

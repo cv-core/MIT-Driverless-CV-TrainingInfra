@@ -41,6 +41,21 @@ You can download image dataset and label csv from the link below and unzip them 
 
 [All label csv](https://storage.cloud.google.com/mit-driverless-open-source/rektnet-training/rektnet_label.csv?authuser=1)
 
+### 2.Training
+
+```
+python3 train_eval.py --study_name=<name for this experiment>
+```
+
+Once you've finished training, you can access the weights file in `./outputs/`
+
+### 3.Inference
+
+```
+python3 detect.py --model=<path to .pt weights file> --img=<path to an image>
+```
+
+Once you've finished inference, you can access the result in `./outputs/visualization/`
 
 #### Run Bayesian hyperparameter search
 
