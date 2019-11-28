@@ -28,8 +28,9 @@ Each set of training images from a specific sensor/lens/perspective combination 
 
 
 Our final accuracy metrics for detecting traffic cones on the racing track:
+
 | mAP | Recall | Precision |
-|-----|-----|-----|
+|----|----|----|
 | 89.35% | 92.77% | 86.94% |
 
 #### CVC-YOLOv3 Dataset with *Formula Student Standard* is open-sourced ***[here](https://storage.cloud.google.com/mit-driverless-open-source/YOLO_Dataset.zip?authuser=1)***
