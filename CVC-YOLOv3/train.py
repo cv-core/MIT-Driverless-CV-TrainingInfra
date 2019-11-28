@@ -132,7 +132,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, outpu
         print("Num train images: ", len(train_data_loader.dataset))
 
         validate_data_loader = torch.utils.data.DataLoader(
-            ImageLabelDataset(validate_uri, dataset_path=dataset_pathm width=img_width, height=img_height, augment_hsv=False,
+            ImageLabelDataset(validate_uri, dataset_path=dataset_path, width=img_width, height=img_height, augment_hsv=False,
                                 augment_affine=False, num_images=num_validate_images,
                                 bw=bw, n_cpu=num_cpu, lr_flip=False, ud_flip=False,vis_batch=vis_batch,data_aug=False,blur=False,salt=False,noise=False,contrast=False,sharpen=False,ts=ts,debug_mode=debug_mode, upload_dataset=upload_dataset),
             batch_size=(1 if debug_mode else batch_size),
