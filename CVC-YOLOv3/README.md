@@ -33,7 +33,7 @@ gsutil cp -p gs://mit-driverless-open-source/YOLO_Dataset.zip ./dataset/
 ```
 then unzip 
 ```
-unzip dataset/YOLO_Dataset.zip
+unzip dataset/YOLO_Dataset.zip -d ./dataset/
 ```
 ###### 1.1.2 Label csv file:
 ```

@@ -29,7 +29,7 @@ torch.backends.cudnn.benchmark = False
 
 random.seed(a=17, version=2)
 torchvision.set_image_backend('accimage')
-gcloud_tmp_path = "/outputs/visualization/"
+visualization_tmp_path = "/outputs/visualization/"
 
 class ImageLabelDataset(torch.utils.data.Dataset, object):
     def __init__(self, path, dataset_path, width, height, augment_affine, num_images, augment_hsv, lr_flip, ud_flip, bw, n_cpu, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts,debug_mode, upload_dataset):
@@ -135,7 +135,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             vis_orig_img = copy.deepcopy(orig_img)
             labels = add_class_dimension_to_labels(img_labels)
             labels = xyhw2xyxy_corner(labels, skip_class_dimension=True)
-            tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + ".jpg")
+            tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + ".jpg")
             visualize_and_save_to_local(vis_orig_img, labels, tmp_path, box_color="green")
             print(f'new image uploaded to {tmp_path}')
         
@@ -180,7 +180,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             labels = scale_labels(labels, self.scales[index])
             labels = add_padding_on_each_side(labels, horiz_pad, vert_pad)
             if self.vis_batch:
-                tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_scaled.jpg")
+                tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + "_scaled.jpg")
                 visualize_and_save_to_local(padded_img, labels, tmp_path, box_color="red")
 
             labels_temp = filter_and_offset_labels(labels, boundary)
@@ -192,7 +192,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                     labels = filter_and_offset_labels(pre_vis_labels, boundary)
 
-                    tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + \
+                    tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + \
                                         "_patch_{}.jpg".format(i))
                     visualize_and_save_to_local(vis_patch_img, labels, tmp_path, box_color="blue")
             if self.upload_dataset:
@@ -202,7 +202,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
                     labels = filter_and_offset_labels(pre_vis_labels, boundary)
 
-                    tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + \
+                    tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + \
                                         "_patch_{}.jpg".format(i))
                     upload_label_and_image_to_gcloud(vis_patch_img, labels, tmp_path)
 
@@ -214,13 +214,13 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
             labels_temp = labels
 
             if self.vis_batch:
-                tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_pad_resized.jpg")
+                tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + "_pad_resized.jpg")
                 visualize_and_save_to_local(img, labels, tmp_path, box_color="blue")
 
         labels = labels_temp
         if self.vis_batch and self.data_aug:
             vis_aug_img = copy.deepcopy(img)
-            tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_before_aug.jpg")
+            tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + "_before_aug.jpg")
             visualize_and_save_to_local(vis_aug_img, labels, tmp_path, box_color="red")
         if self.augment_hsv or self.data_aug:
             if random.random() > 0.5:
@@ -296,7 +296,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
 
         if self.vis_batch and self.data_aug:
             vis_post_aug_img = copy.deepcopy(img)
-            tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_post_augmentation.jpg")
+            tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + "_post_augmentation.jpg")
             visualize_and_save_to_local(vis_post_aug_img, labels, tmp_path, box_color="green")
 
         if self.vis_batch:

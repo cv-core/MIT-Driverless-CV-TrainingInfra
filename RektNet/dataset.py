@@ -11,7 +11,7 @@ import random
 import math
 import sys
 import copy
-from utils import vis_kpt_and_up2gcp, vis_hm_and_up2gcp, prep_image, prep_label, get_scale, scale_labels
+from utils import vis_kpt_and_save, vis_hm_and_save, prep_image, prep_label, get_scale, scale_labels
 
 def print_tensor_stats(x, name):
     flattened_x = x.cpu().detach().numpy().flatten()
@@ -46,10 +46,10 @@ class ConeDataset(Dataset):
             tmp_image = copy.deepcopy(image)
             ##### visualize label #####
 
-            vis_kpt_and_up2gcp(np_image=tmp_image, image_name=image_name, h_scale=h_scale, w_scale=w_scale, labels=scaled_labels)
+            vis_kpt_and_save(np_image=tmp_image, image_name=image_name, h_scale=h_scale, w_scale=w_scale, labels=scaled_labels)
 
             ##### visualize heat-map #####
-            vis_hm_and_up2gcp(np_heat_map=hm, image_name=image_name)
+            vis_hm_and_save(np_heat_map=hm, image_name=image_name)
 
         image = image.transpose((2, 0, 1)) / 255.0
         tensor_image = torch.from_numpy(image).type('torch.FloatTensor')

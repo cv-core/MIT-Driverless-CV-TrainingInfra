@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-gcloud_tmp_path = "outputs/visualization/"
+visualization_tmp_path = "outputs/visualization/"
 
 def assignment(boxes, centroids):
     for i in centroids:
@@ -93,7 +93,7 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
         plt.xlabel('Width', fontsize=18)
         plt.ylabel('Height', fontsize=16)
         plt.legend(labels)
-        fig.savefig(os.path.join(gcloud_tmp_path,'original_boxes.png'))
+        fig.savefig(os.path.join(visualization_tmp_path,'original_boxes.png'))
 
     #############################
 
@@ -173,7 +173,7 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
             w.append(centroids[key][1])
         plt.scatter(w,h, color='k')
         figure.suptitle('Centroids and Scaled Boxes', fontsize=20)
-        figure.savefig(os.path.join(gcloud_tmp_path,'centroids_scaled.png'))
+        figure.savefig(os.path.join(visualization_tmp_path,'centroids_scaled.png'))
         #############################
 
         #plot centroids separately
@@ -185,7 +185,7 @@ def main(csv_uri,dataset_path,output_path,num_clst,max_cone,min_cone,if_plot,spl
             w.append(centroids[key][1])
         plt.scatter(w,h)
         figure2.suptitle('Centroids', fontsize=20)
-        figure2.savefig(os.path.join(gcloud_tmp_path,'centroids.png'))
+        figure2.savefig(os.path.join(visualization_tmp_path,'centroids.png'))
         #############################
     #############################
     

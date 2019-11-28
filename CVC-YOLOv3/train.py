@@ -29,6 +29,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 ########################################
 
+visualization_tmp_path = "/outputs/visualization/"
 warnings.filterwarnings("ignore")
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 

@@ -23,7 +23,7 @@ from torchvision import transforms
 from keypoint_net import KeypointNet
 from cross_ratio_loss import CrossRatioLoss
 from utils import Logger
-from utils import load_train_csv_dataset, prep_image, visualize_data, vis_tensor_and_up2gcp, load_imgs_csv, calculate_distance, calculate_mean_distance
+from utils import load_train_csv_dataset, prep_image, visualize_data, vis_tensor_and_save, calculate_distance, calculate_mean_distance
 from dataset import ConeDataset
 
 cv2.setRNGSeed(17)
@@ -34,20 +34,20 @@ torch.backends.cudnn.benchmark = False
 cuda = torch.cuda.is_available()
 device = torch.device('cuda:0' if cuda else 'cpu')
 
+visualization_tmp_path = "/outputs/visualization/"
+
 def print_tensor_stats(x, name):
     flattened_x = x.cpu().detach().numpy().flatten()
     avg = sum(flattened_x)/len(flattened_x)
     print(f"\t\t{name}: {avg},{min(flattened_x)},{max(flattened_x)}")
 
-def train_model(model, dataloader, loss_function, optimizer, scheduler, epochs, checkpoint_uri, val_dataloader, intervals, input_size, overfit_mode, num_kpt, save_checkpoints, vis_imgs_csv, kpt_keys, study_name, evaluate_mode):
+def train_model(model, output_uri, dataloader, loss_function, optimizer, scheduler, epochs, val_dataloader, intervals, input_size, num_kpt, save_checkpoints, kpt_keys, study_name, evaluate_mode):
+    
     best_val_loss = float('inf')
     best_epoch = 0
-
-    if overfit_mode:
-        max_tolerance = 100
-    else:
-        max_tolerance = 8
+    max_tolerance = 8
     tolerance = 0
+
     for epoch in range(epochs):
         print(f"EPOCH {epoch}")
         model.train()
@@ -89,38 +89,30 @@ def train_model(model, dataloader, loss_function, optimizer, scheduler, epochs, 
             tolerance = 0
 
             # Save model onnx for inference.
-            if save_checkpoints and not overfit_mode:
+            if save_checkpoints:
                 with tempfile.NamedTemporaryFile() as tmpfile:
-                    onnx_uri = os.path.join(checkpoint_uri, f"onnx/best_keypoints_{input_size[0]}{input_size[1]}.onnx")
+                    onnx_uri = os.path.join(output_uri,f"onnx/best_keypoints_{input_size[0]}{input_size[1]}.onnx")
                     onnx_model = KeypointNet(num_kpt, input_size, onnx_mode=True)
                     onnx_model.load_state_dict(model.state_dict())
                     torch.onnx.export(onnx_model, torch.randn(1, 3, input_size[0], input_size[1]), tmpfile.name)
                     print(f"Saving ONNX model to {onnx_uri}")
-                    #TO-DO: Make it save to local
-                    # storage_client.upload_file(tmpfile.name, onnx_uri, use_cache=False)
+                    os.rename(tmpfile.name, onnx_uri)
                 best_model = copy.deepcopy(model)
         else:
             tolerance += 1
 
-        if save_checkpoints and epoch != 0 and (epoch + 1) % intervals == 0 and not overfit_mode:
+        if save_checkpoints and epoch != 0 and (epoch + 1) % intervals == 0:
             # Save the latest weights
-            gs_pt_uri = os.path.join(checkpoint_uri, "{epoch}_loss_{loss}.pt".format(epoch=epoch, loss=round(val_loss, 2)))
+            gs_pt_uri = os.path.join(output_uri, "{epoch}_loss_{loss}.pt".format(epoch=epoch, loss=round(val_loss, 2)))
             print(f'Saving model to {gs_pt_uri}')
             with tempfile.NamedTemporaryFile() as tmpfile:
                 checkpoint = {'epoch': epoch,
                               'model': model.state_dict(),
                               'optimizer': optimizer.state_dict()}
                 torch.save(checkpoint, tmpfile.name)
-                #TO-DO: Make it save to local
-                # storage_client.upload_file(tmpfile.name, gs_pt_uri, use_cache=False)
+                os.rename(tmpfile.name, gs_pt_uri)
         if tolerance >= max_tolerance:
             print(f"Training is stopped due; loss no longer decreases. Epoch {best_epoch} is has the best validation loss.")
-
-            ##### post training knowledge and visualization #####
-            print_kpt_L2_distance(best_model, val_dataloader, kpt_keys, study_name, evaluate_mode, input_size[0])
-            visualize_model_on_imgs(best_model, vis_imgs_csv, input_size, checkpoint_uri)
-            #####################################################
-
             break
 
 def eval_model(model, dataloader, loss_function, input_size):
@@ -196,27 +188,6 @@ def print_kpt_L2_distance(model, dataloader, kpt_keys, study_name, evaluate_mode
     result.close() 
     ###########################################
 
-def visualize_model_on_imgs(model, vis_imgs_csv, target_image_size, img_save_folder):
-    vis_img_names, vis_imgs = load_imgs_csv(vis_imgs_csv)
-    for i, img in enumerate(tqdm(vis_imgs,desc="visualizing sample images")):
-        image = cv2.imread(img)
-        image = prep_image(image=image, target_image_size=target_image_size)
-        image = (image.transpose((2, 0, 1)) / 255.0)[np.newaxis, :]
-        tensor_image = torch.from_numpy(image).type('torch.cuda.FloatTensor')
-
-        output = model(tensor_image)
-
-        img_name = vis_img_names[i]
-        pil_img = transforms.ToPILImage()(tensor_image.cpu().squeeze())
-        h,w = pil_img.size 
-
-        np_image = np.array(pil_img)
-        visualization_save_path = os.path.join(img_save_folder, 'visualization/')
-        vis_tensor_and_up2gcp(image=np_image, h=h, w=w, tensor_output=output[1][0].cpu().data, image_name=img_name, output_uri=visualization_save_path)
-
-    print("Visualization Successfully Uploaded!")
-    print(f"Please go to the link below to check the detection output file: {img_save_folder}")
-
 def main():
     def add_bool_arg(name, default, help):
         arg_group = parser.add_mutually_exclusive_group(required=False)
@@ -227,7 +198,9 @@ def main():
     parser = argparse.ArgumentParser(description='Keypoints Training with Pytorch')
 
     parser.add_argument('--input_size', default=80, help='input image size')
-    parser.add_argument('--train_dataset_uri', default='gs://mit-dut-driverless-internal/data-labels/keypoints/keypoints_Round01_revised_parsed_filtered.csv', help='training dataset csv directory path')
+    parser.add_argument('--train_dataset_uri', default='dataset/rektnet_label.csv', help='training dataset csv directory path')
+    parser.add_argument('--output_path', type=str, help='output weights path, by default we will create a folder based on current system time and name of your cfg file',default="automatic")
+    parser.add_argument('--dataset_path', type=str, help='path to image dataset',default="dataset/RektNet_Dataset/")
     parser.add_argument('--loss_type', default='l2_heatmap', help='loss type: l2_softargmax|l2_heatmap|l1_softargmax')
     parser.add_argument('--validation_ratio', default=0.15, type=float, help='percent of dataset to use for validation')
     parser.add_argument('--batch_size', type=int, default=32, help='size of each image batch')
@@ -236,24 +209,29 @@ def main():
     parser.add_argument('--num_epochs', default=1024, type=int, help='number of epochs')
     parser.add_argument("--checkpoint_interval", type=int, default=4, help="interval between saving model weights")
     parser.add_argument('--study_name', required=True, help='name for saving checkpoint models on GCP')
-    parser.add_argument('--vis_imgs_csv', default='gs://mitdriverless/mit-dut-driverless-internal/data-labels/keypoints/kpt_gangsters.csv', help='visualization images')    
 
     add_bool_arg('geo_loss', default=True, help='whether to add in geo loss')
     parser.add_argument('--geo_loss_gamma_vert', default=0, type=float, help='gamma for the geometric loss (horizontal)')
     parser.add_argument('--geo_loss_gamma_horz', default=0, type=float, help='gamma for the geometric loss (vertical)')
     
-    add_bool_arg('auto_sd', default=False, help='whether to enable automatical instance shutdown after training. default to True')
     add_bool_arg('vis_upload_data', default=False, help='whether to visualize our dataset in Christmas Tree format and upload the whole dataset to GCP. default to False')
-    add_bool_arg('overfit_mode', default=False, help='whether to check if the model is able to overfit with one image dataset')
     add_bool_arg('save_checkpoints', default=True, help='whether to save checkpoints')
     add_bool_arg('vis_dataloader', default=False, help='whether to visualize the image points and heatmap processed in our dataloader')
     add_bool_arg('evaluate_mode', default=False, help='whether to evaluate avg kpt mse vs BB size distribution at end of training')
 
     args = parser.parse_args()
     print("Program arguments:", args)
+
+    if args.output_path == "automatic":
+        current_month = datetime.now().strftime('%B').lower()
+        current_year = str(datetime.now().year)
+        if not os.path.exists(os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + args.study_name + '/')):
+            os.makedirs(os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + args.study_name + '/'))
+        output_uri = os.path.join('outputs/', current_month + '-' + current_year + '-experiments/' + args.study_name + '/')
+    else:
+        output_uri = args.output_path
     
-    checkpoint_uri = 'gs://mit-dut-driverless-internal/keypoints/' + args.study_name + '/'
-    save_file_name = 'logs/' + checkpoint_uri.split('/')[-2]
+    save_file_name = 'logs/' + output_uri.split('/')[-2]
     sys.stdout = Logger(save_file_name + '.log')
     sys.stderr = Logger(save_file_name + '.error')
     
@@ -262,19 +240,13 @@ def main():
 
     intervals = args.checkpoint_interval
     val_split = args.validation_ratio
-    if args.overfit_mode:
-        batch_size = 1
-        num_epochs = 20480
-    else:
-        batch_size= args.batch_size
-        num_epochs= args.num_epochs
+    
+    batch_size= args.batch_size
+    num_epochs= args.num_epochs
 
     # Load the train data.
     train_csv = args.train_dataset_uri
-    if args.overfit_mode:
-        train_csv = 'gs://mit-dut-driverless-internal/data-labels/keypoints/two_images.csv'
-        val_split = 0.5
-    train_images, train_labels, val_images, val_labels = load_train_csv_dataset(train_csv, validation_percent=val_split, keypoint_keys=KPT_KEYS, cache_location="./gs/")
+    train_images, train_labels, val_images, val_labels = load_train_csv_dataset(train_csv, validation_percent=val_split, keypoint_keys=KPT_KEYS, dataset_path=args.dataset_path, cache_location="./gs/")
 
     # "Become one with the data" - Andrej Karpathy
     if args.vis_upload_data:
@@ -283,9 +255,9 @@ def main():
         os.system('sudo shutdown now')
 
     # Create pytorch dataloaders for train and validation sets.
-    train_dataset = ConeDataset(images=train_images, labels=train_labels, target_image_size=INPUT_SIZE, overfit_mode=args.overfit_mode, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
+    train_dataset = ConeDataset(images=train_images, labels=train_labels, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
     train_dataloader = DataLoader(train_dataset, batch_size= batch_size, shuffle=False, num_workers=0)
-    val_dataset = ConeDataset(images=val_images, labels=val_labels, target_image_size=INPUT_SIZE, overfit_mode=args.overfit_mode, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
+    val_dataset = ConeDataset(images=val_images, labels=val_labels, target_image_size=INPUT_SIZE, save_checkpoints=args.save_checkpoints, vis_dataloader=args.vis_dataloader)
     val_dataloader = DataLoader(val_dataset, batch_size= 1, shuffle=False, num_workers=0)
 
     # Define model, optimizer and loss function.
@@ -297,28 +269,22 @@ def main():
 
     # Train our model.
     train_model(
-        model=model, 
+        model=model,
+        output_uri=args.output_uri,
         dataloader=train_dataloader, 
         loss_function=loss_func, 
         optimizer=optimizer, 
         scheduler=scheduler, 
         epochs=num_epochs, 
-        checkpoint_uri=checkpoint_uri, 
         val_dataloader=val_dataloader, 
         intervals=intervals, 
         input_size=INPUT_SIZE,
-        overfit_mode=args.overfit_mode,
         num_kpt=len(KPT_KEYS), 
         save_checkpoints=args.save_checkpoints,
-        vis_imgs_csv=args.vis_imgs_csv,
         kpt_keys=KPT_KEYS,
         study_name=args.study_name,
         evaluate_mode=args.evaluate_mode
     )
-
-    if args.auto_sd:
-        print('Shutting down instance...')
-        os.system('sudo shutdown now')
 
 if __name__=='__main__':
     main()

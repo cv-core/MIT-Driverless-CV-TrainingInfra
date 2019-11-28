@@ -6,7 +6,7 @@ import sys
 import os
 import sys
 import shutil
-from utils import vis_tensor_and_up2gcp, prep_image
+from utils import vis_tensor_and_save, prep_image
 
 from keypoint_net import KeypointNet
 
@@ -59,7 +59,7 @@ def main(model,img,img_size,output,flip,rotate):
     image = cv2.imread(image_filepath)
     h, w, _ = image.shape
 
-    vis_tensor_and_up2gcp(image=image, h=h, w=w, tensor_output=output[1][0].cpu().data, image_name=img_name)
+    vis_tensor_and_save(image=image, h=h, w=w, tensor_output=output[1][0].cpu().data, image_name=img_name)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Keypoints Visualization')

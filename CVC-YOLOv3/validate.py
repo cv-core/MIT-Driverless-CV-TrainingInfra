@@ -22,7 +22,7 @@ import copy
 
 ################################################
 gcloud_vis_path = "gs://mit-dut-driverless-internal/dumping-ground/visualization/"
-gcloud_tmp_path = "/outputs/visualization/"
+visualization_tmp_path = "/outputs/visualization/"
 ################################################
 
 def main(*, batch_size, model_cfg, weights_path, bbox_all, step, n_cpu):
@@ -198,7 +198,7 @@ def validate(*, dataloader, model, device, step=-1, bbox_all=False,debug_mode,va
                             ##### getting the image's name #####
                             img_path = img_uris[0]
                             img_name = ("_".join(map(str, img_path.split("_")[-5:])))
-                            tmp_path = os.path.join(gcloud_tmp_path, img_name[:-4] + "_predicted_vis.jpg")
+                            tmp_path = os.path.join(visualization_tmp_path, img_name[:-4] + "_predicted_vis.jpg")
                             vis_label = add_class_dimension_to_labels(detect_box)
                             visualize_and_save_to_local(pil_img, vis_label, tmp_path,box_color="red")
                             print("Prediction visualization uploaded")

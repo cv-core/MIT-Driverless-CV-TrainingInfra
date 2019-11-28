@@ -12,20 +12,17 @@ from tqdm import tqdm
 import statistics
 import torch
 
-sys.path.insert(1, os.path.realpath(os.path.pardir+'/vectorized_yolov3/utils'))
-import storage_client
-
 import PIL
 from PIL import Image, ImageDraw
 
 vis_tmp_path = "/tmp/detect/" #!!!don't specify this path outside of /tmp/, otherwise important files could be removed!!!
-vis_gcp_path = "gs://mit-dut-driverless-internal/dumping-ground/keypoints_visualization/"
+vis_path = "/outputs/visualization/"
 
 if os.path.exists(vis_tmp_path):
     shutil.rmtree(vis_tmp_path)  # delete output folder
 os.makedirs(vis_tmp_path)  # make new output folder
 
-gc_storage_client = storage.Client(project="mitdriverless")
+# gc_storage_client = storage.Client(project="mitdriverless")
 
 class Logger(object):
     def __init__(self, File):
@@ -43,18 +40,16 @@ class Logger(object):
     def flush(self):
         pass 
 
-def vis_kpt_and_up2gcp(np_image, image_name, h_scale, w_scale, labels, color=(52,31,163)):
+def vis_kpt_and_save(np_image, image_name, h_scale, w_scale, labels, color=(52,31,163)):
     circ_size = 3
     for pt in np.array(labels):
         x_coor, y_coor = pt 
         cv2.circle(np_image, (x_coor, y_coor), circ_size, color, -1) #BGR color (52,31,163) is called mit logo red
     if not cv2.imwrite(os.path.join(vis_tmp_path, image_name + "_label_vis.jpg"), np_image):
         raise Exception("Could not write image")    #opencv won't give you error for incorrect image but return False instead, so we have to do it manually
-    storage_client.upload_file(os.path.join(vis_tmp_path, image_name + "_label_vis.jpg"), os.path.join(vis_gcp_path, image_name + "_label_vis.jpg"))
-    print("label visualization uploaded, check them here: ")
-    print(os.path.join('https://storage.cloud.google.com/',*os.path.join(vis_gcp_path, image_name + "_label_vis.jpg?authuser=1").split('/')[2:]))
+    os.rename(os.path.join(vis_tmp_path, image_name + "_label_vis.jpg"), os.path.join(vis_path, image_name + "_label_vis.jpg"))
 
-def vis_hm_and_up2gcp(np_heat_map, image_name):
+def vis_hm_and_save(np_heat_map, image_name):
     np_image = np.zeros((1, np_heat_map.shape[1], np_heat_map.shape[2]))
     for i in range(np_heat_map.shape[0]):
         np_image += np_heat_map[i,:,:] #sum up the heat-map numpy matrix
@@ -63,11 +58,9 @@ def vis_hm_and_up2gcp(np_heat_map, image_name):
     img = Image.fromarray(((data - data.min()) * 255.0 /
         (data.max() - data.min())).astype(np.uint8)) #convert to PIL image
     img.save(os.path.join(vis_tmp_path, image_name + "_heat_map.jpg")) # opencv doesn't like our heat-map, so we use PIL instead here
-    storage_client.upload_file(os.path.join(vis_tmp_path, image_name + "_heat_map.jpg"), os.path.join(vis_gcp_path, image_name + "_heat_map.jpg"))
-    print("heat-map visualization uploaded, check them here: ")
-    print(os.path.join('https://storage.cloud.google.com/',*os.path.join(vis_gcp_path, image_name + "_heat_map.jpg?authuser=1").split('/')[2:]))
+    os.rename(os.path.join(vis_tmp_path, image_name + "_heat_map.jpg"), os.path.join(vis_path, image_name + "_heat_map.jpg"))
 
-def vis_tensor_and_up2gcp(image, h, w, tensor_output, image_name, output_uri=vis_gcp_path):
+def vis_tensor_and_save(image, h, w, tensor_output, image_name, output_uri):
     colors = [(0, 255, 0), (255, 0, 0), (255, 255, 0), (0, 255, 255), (255, 0, 255), (127, 255, 127), (255, 127, 127)]
     i = 0
     for pt in np.array(tensor_output):
@@ -76,11 +69,7 @@ def vis_tensor_and_up2gcp(image, h, w, tensor_output, image_name, output_uri=vis
     if not cv2.imwrite(os.path.join(vis_tmp_path, image_name + "_inference.jpg"), image):
         raise Exception("Could not write image")    #opencv won't give you error for incorrect image but return False instead, so we have to do it manually
     
-    storage_client.upload_file(os.path.join(vis_tmp_path, image_name + "_inference.jpg"), os.path.join(output_uri, image_name + "_inference.jpg"))
-    if output_uri == vis_gcp_path:
-        print("Visualization Successfully Uploaded!")
-        print("Please go to the link below to check the detection output file: ")
-        print(os.path.join('https://storage.cloud.google.com/',*os.path.join(output_uri, image_name + "_inference.jpg?authuser=1").split('/')[2:]))
+    os.rename(os.path.join(vis_tmp_path, image_name + "_inference.jpg"), os.path.join(output_uri, image_name + "_inference.jpg"))
 
 def prep_image(image,target_image_size):
     h,w,_ = image.shape
@@ -124,7 +113,7 @@ def scale_labels(labels, h_scale, w_scale):
 
 def visualize_data(images, labels):
     vis_process = tqdm(images)
-    for index,_ in tqdm(enumerate(vis_process),desc="Uploading Visualization"):
+    for index,_ in tqdm(enumerate(vis_process),desc="Processing Visualization"):
         # print("{}/{}: {}".format(index + 1, len(images), images[index]))
         image = cv2.imread("./gs/"+images[index])
         h, w, _ = image.shape
@@ -154,17 +143,15 @@ def visualize_data(images, labels):
                 cv2.line(image, prevpt, cvpt, (0, 255, 0), 2)
             prevpt = cvpt
         cv2.imwrite(vis_tmp_path + images[index], image)
-        storage_client.upload_file(vis_tmp_path + images[index], vis_gcp_path + images[index])
+        os.rename(vis_tmp_path + images[index], vis_path + images[index])
         cv2.waitKey(0)
         for i in range(hm.shape[0]):
             cv2.imwrite(vis_tmp_path + images[index], image)
-            storage_client.upload_file(vis_tmp_path + images[index], vis_gcp_path + images[index])
+            os.rename(vis_tmp_path + images[index], vis_path + images[index])
             cv2.waitKey(0)
 
-def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, cache_location=None):
-    print(train_csv_uri)
-    tmpFile = storage_client.get_file(train_csv_uri)
-    train_data_table = pd.read_csv(tmpFile)
+def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, dataset_path, cache_location=None):
+    train_data_table = pd.read_csv(train_csv_uri)
     train_data_table_hash = hashlib.sha256(pd.util.hash_pandas_object(train_data_table, index=True).values).hexdigest()
 
     train_images, train_labels = None, None
@@ -199,30 +186,30 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, cac
                 label_np[j, 0] = txt[0]
                 label_np[j, 1] = txt[1]
             tmp_labels.append(label_np)
-            image_uris.append(images[i])
+            image_uris.append(os.path.join(dataset_path,images[i]))
 
         train_images = []
         train_labels = []
 
-        if not os.path.isdir("./gs"):
-            os.mkdir("./gs")
-        print("Downloading dataset...")
+        # if not os.path.isdir("./gs"):
+        #     os.mkdir("./gs")
+        # print("Downloading dataset...")
 
         num = 0
-        for uri in tqdm(image_uris,desc="Downloading"):
-            uri_parts = uri.split("/")
-            start_inx = 0
-            if uri_parts[0] == 'https:':
-                start_inx = 3
-            elif uri_parts[0] == 'gs:':
-                start_inx = 2
-            bucket_name = uri_parts[start_inx]
-            bucket = gc_storage_client.get_bucket(bucket_name)
-            blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
-            if not os.path.isfile('./gs/' + uri_parts[-1]):
-                blob.download_to_filename('./gs/' + uri_parts[-1])
+        for uri in tqdm(image_uris,desc="Processing Image Dataset"):
+            # uri_parts = uri.split("/")
+            # start_inx = 0
+            # if uri_parts[0] == 'https:':
+            #     start_inx = 3
+            # elif uri_parts[0] == 'gs:':
+            #     start_inx = 2
+            # bucket_name = uri_parts[start_inx]
+            # bucket = gc_storage_client.get_bucket(bucket_name)
+            # blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
+            # if not os.path.isfile('./gs/' + uri_parts[-1]):
+            #     blob.download_to_filename('./gs/' + uri_parts[-1])
 
-            image = cv2.imread("./gs/"+uri_parts[-1])
+            image = cv2.imread(uri)
             h, _, _ = image.shape
             if h < 10:
                 num += 1
@@ -258,42 +245,42 @@ def load_train_csv_dataset(train_csv_uri, validation_percent, keypoint_keys, cac
 
     return train_images, train_labels, val_images, val_labels
 
-def load_imgs_csv(val_vis_uri):
-    uri_parts = val_vis_uri.split("/")
-    bucket_name = uri_parts[3]
-    bucket = gc_storage_client.get_bucket(bucket_name)
-    blob = bucket.blob("/".join(uri_parts[4:]))
-    with tempfile.NamedTemporaryFile() as tmpFile:
-        blob.download_to_filename(tmpFile.name)
-        train_data_table = pd.read_csv(tmpFile.name)
+# def load_imgs_csv(val_vis_uri):
+#     uri_parts = val_vis_uri.split("/")
+#     bucket_name = uri_parts[3]
+#     bucket = gc_storage_client.get_bucket(bucket_name)
+#     blob = bucket.blob("/".join(uri_parts[4:]))
+#     with tempfile.NamedTemporaryFile() as tmpFile:
+#         blob.download_to_filename(tmpFile.name)
+#         train_data_table = pd.read_csv(tmpFile.name)
 
-    image_names = train_data_table.values[:, 0]
-    image_uris = train_data_table.values[:, 1]
-    names = []
-    uris = []
-    output_images = []
+#     image_names = train_data_table.values[:, 0]
+#     image_uris = train_data_table.values[:, 1]
+#     names = []
+#     uris = []
+#     output_images = []
 
-    for i in range(len(image_names)):
-        names.append(image_names[i])
+#     for i in range(len(image_names)):
+#         names.append(image_names[i])
 
-    if not os.path.isdir("./gs"):
-        os.mkdir("./gs")
+#     if not os.path.isdir("./gs"):
+#         os.mkdir("./gs")
 
-    for uri in tqdm(image_uris,desc="Downloading Images"):
-        uri_parts = uri.split("/")
-        start_inx = 0
-        if uri_parts[0] == 'https:':
-            start_inx = 3
-        elif uri_parts[0] == 'gs:':
-            start_inx = 2
-        bucket_name = uri_parts[start_inx]
-        bucket = gc_storage_client.get_bucket(bucket_name)
-        blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
-        if not os.path.isfile('./gs/' + uri_parts[-1]):
-            blob.download_to_filename('./gs/' + uri_parts[-1])
-        output_images.append('./gs/' + uri_parts[-1])
+#     for uri in tqdm(image_uris,desc="Downloading Images"):
+#         uri_parts = uri.split("/")
+#         start_inx = 0
+#         if uri_parts[0] == 'https:':
+#             start_inx = 3
+#         elif uri_parts[0] == 'gs:':
+#             start_inx = 2
+#         bucket_name = uri_parts[start_inx]
+#         bucket = gc_storage_client.get_bucket(bucket_name)
+#         blob = bucket.blob("/".join(uri_parts[start_inx+1:]))
+#         if not os.path.isfile('./gs/' + uri_parts[-1]):
+#             blob.download_to_filename('./gs/' + uri_parts[-1])
+#         output_images.append('./gs/' + uri_parts[-1])
 
-    return names, output_images
+#     return names, output_images
 
 def calculate_distance(target_points,pred_points):
     dist_matrix = []

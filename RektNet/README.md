@@ -27,7 +27,7 @@ gsutil cp -p gs://mit-driverless-open-source/RektNet_Dataset.zip ./dataset/
 ```
 then unzip 
 ```
-unzip dataset/RektNet_Dataset.zip
+unzip dataset/RektNet_Dataset.zip -d ./dataset/
 ```
 ###### 1.2 Label csv file:
 ```
