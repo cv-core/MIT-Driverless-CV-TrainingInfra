@@ -137,7 +137,7 @@ class ImageLabelDataset(torch.utils.data.Dataset, object):
         img_uri = self.img_files[index]
         img_labels = self.labels[index]
         # don't download, since it was already downloaded in the init
-        img_path = storage_client.get_uri_filepath(img_uri)  
+        img_path = img_uri
         img_name = ("_".join(map(str, img_path.split("_")[-5:])))
         orig_img = PIL.Image.open(img_path).convert('RGB')
         if orig_img is None:
