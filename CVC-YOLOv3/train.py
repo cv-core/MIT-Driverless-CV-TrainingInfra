@@ -55,7 +55,7 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, ep
     epoch_time_total = 0.0
     epoch_num_targets = 1e-12
     t1 = time.time()
-    loss_labels = ["Total", "L-x", "L-y", "L-w", "L-h", "L-conf-back", "L-conf-fore"]
+    loss_labels = ["Total", "L-x", "L-y", "L-w", "L-h", "L-noobj", "L-obj"]
     for i, (img_uri, imgs, targets) in enumerate(data_loader):
         if step[0] >= num_steps:
             break

@@ -207,11 +207,11 @@ class YOLOLayer(nn.Module):
             loss_h = self.wh_loss * self.mse_loss(h[mask], th[mask])
 
             loss_cls = l_hyp[2] * (1 / nB) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
-            loss_conf_b = self.no_object_loss * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
-            loss_conf_f = self.object_loss * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
-            loss = loss_x + loss_y + loss_w + loss_h + loss_conf_b + loss_conf_f + loss_cls
+            loss_noobj = self.no_object_loss * self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) 
+            loss_obj = self.object_loss * self.bce_loss(pred_conf[conf_mask_true], tconf[conf_mask_true])
+            loss = loss_x + loss_y + loss_w + loss_h + loss_noobj + loss_obj + loss_cls
 
-            return loss, torch.tensor((loss_x, loss_y, loss_w, loss_h, loss_conf_f, loss_conf_b), device=targets.device)
+            return loss, torch.tensor((loss_x, loss_y, loss_w, loss_h, loss_obj, loss_noobj), device=targets.device)
 
         else:
             # If not in training phase return predictions
