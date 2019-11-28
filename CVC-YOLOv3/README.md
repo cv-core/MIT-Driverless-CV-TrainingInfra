@@ -44,6 +44,10 @@ gsutil cp -p gs://mit-driverless-open-source/yolov3-training/train.csv ./dataset
 ```
 gsutil cp -p gs://mit-driverless-open-source/yolov3-training/validate.csv ./dataset/
 ```
+Initial weights file:
+```
+gsutil cp -p  gs://mit-driverless-open-source/yolov3-training/sample-yolov3.weights ./dataset/
+```
 
 ##### Download manually (Optional)
 You can download image dataset and label csv from the link below and unzip them into `./dataset/YOLO_Dataset/` 
@@ -56,6 +60,7 @@ You can download image dataset and label csv from the link below and unzip them 
 
 [Validate label csv](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/validate.csv?authuser=1)
 
+[Initial weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
 
 2. Train the model with
 
