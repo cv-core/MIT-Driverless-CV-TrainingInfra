@@ -57,7 +57,7 @@ def main(target_path,output_path,weights_path,model_cfg,conf_thres,nms_thres,xy_
            conf_thres=conf_thres,
            nms_thres=nms_thres)
 
-def single_img_detect(target_path,model,device,conf_thres,nms_thres):
+def single_img_detect(target_path,output_path,mode,model,device,conf_thres,nms_thres):
 
     img = Image.open(target_path).convert('RGB')
     w, h = img.size
@@ -103,8 +103,12 @@ def single_img_detect(target_path,model,device,conf_thres,nms_thres):
             y1 = main_box_corner[i, 3].to('cpu').item() / ratio - pad_h 
             draw.rectangle((x0, y0, x1, y1), outline="red")
 
-        img_with_boxes.save(target_path)
-        return target_path
+        if mode == 'image'：
+            img_with_boxes.save(os.path.join(output_path,target_path.split('/')[-1]))
+            return os.path.join(output_path,target_path.split('/')[-1])
+        else:
+            img_with_boxes.save(target_path)
+            return target_path
 
 def detect(target_path,
            output_path,
@@ -132,7 +136,7 @@ def detect(target_path,
         raw_file_name = '_'.join(raw_file_name)
         
         if mode == 'image':
-            detection_path = single_img_detect(target_path=target_filepath,model=model,device=device,conf_thres=conf_thres,nms_thres=nms_thres)
+            detection_path = single_img_detect(target_path=target_filepath,output_path=output_path,mode=mode,model=model,device=device,conf_thres=conf_thres,nms_thres=nms_thres)
 
             print(f'Please check output image at {detection_path}')
 
