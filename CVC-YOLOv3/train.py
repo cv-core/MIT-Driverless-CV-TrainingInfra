@@ -97,7 +97,7 @@ def run_epoch(label_prefix, data_loader, num_steps, optimizer, model, writer, ep
             step[0] += 1
     return epoch_losses, epoch_time_total, epoch_num_targets
 
-def main(*, evaluate, batch_size, optimizer_pick, model_cfg, num_epochs, num_steps, checkpoint_interval, 
+def main(*, evaluate, batch_size, optimizer_pick, model_cfg, weights_path, num_epochs, num_steps, checkpoint_interval, 
         augment_affine, augment_hsv, lr_flip, ud_flip, momentum, gamma, lr, weight_decay, vis_batch, data_aug, blur, salt, noise, contrast, sharpen, ts, debug_mode,validation_mode, upload_dataset,xy_loss,wh_loss,background_loss,foreground_loss,vanilla_anchor,val_tolerance,min_epochs):
     input_arguments = list(locals().items())
 
@@ -105,7 +105,7 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, num_epochs, num_ste
     model = Darknet(config_path=model_cfg,xy_loss=xy_loss,wh_loss=wh_loss,background_loss=background_loss,foreground_loss=foreground_loss,vanilla_anchor=vanilla_anchor)
     img_width, img_height = model.img_size()
     bw  = model.get_bw()
-    validate_uri, train_uri, weights_uri, output_uri = model.get_links()
+    validate_uri, train_uri, _, output_uri = model.get_links()
     num_validate_images, num_train_images = model.num_images()
     conf_thresh, nms_thresh, iou_thresh = model.get_threshs()
     num_classes = model.get_num_classes()
@@ -178,7 +178,8 @@ def main(*, evaluate, batch_size, optimizer_pick, model_cfg, num_epochs, num_ste
 
                 start_epoch = 0
 
-                weights_path = storage_client.get_file(weights_uri)
+                # weights_path = storage_client.get_file(weights_uri)
+                weights_path = weights_path
                 if optimizer_pick == "Adam":
                     print("Using Adam Optimizer")
                     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
@@ -287,6 +288,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=7, help='size of each image batch')
     parser.add_argument('--optimizer_pick', type=str, default="Adam", help='choose optimizer between Adam and SGD')
     parser.add_argument('--model_cfg', type=str, help='cfg file path',required=True)
+    parser.add_argument('--weights_path', type=str, help='initial weights path',required=True)
     parser.add_argument('--num_epochs', type=int, default=2048, help='maximum number of epochs')
     parser.add_argument('--num_steps', type=int, default=8388608, help="maximum number of steps")
     parser.add_argument('--val_tolerance', type=int, default=3, help="tolerance for validation loss decreasing")
@@ -344,6 +346,7 @@ if __name__ == '__main__':
                   batch_size=opt.batch_size,
                   optimizer_pick=opt.optimizer_pick,
                   model_cfg=opt.model_cfg,
+                  weights_path=opt.weights_path,
                   num_epochs=opt.num_epochs,
                   num_steps=(opt.num_steps if opt.vis_batch is 0 else opt.vis_batch),
                   checkpoint_interval=opt.checkpoint_interval,
