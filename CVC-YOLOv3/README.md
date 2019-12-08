@@ -46,12 +46,12 @@ gsutil cp -p gs://mit-driverless-open-source/yolov3-training/train.csv ./dataset
 gsutil cp -p gs://mit-driverless-open-source/yolov3-training/validate.csv ./dataset/
 ```
 ###### 1.1.3 Initial weights file:
-full YoloV3 initial weights:
+YoloV3 initial weights:
 ```
 gsutil cp -p  gs://mit-driverless-open-source/yolov3-training/sample-yolov3.weights ./dataset/
 ```
 
-tiny YoloV3 initial weights:
+YoloV3-tiny initial weights:
 ```
 gsutil cp =p gs://mit-driverless-open-source/yolov3-training/sample-yolov3-tiny.weights ./dataset/
 ```
