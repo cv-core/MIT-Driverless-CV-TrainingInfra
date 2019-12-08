@@ -46,8 +46,14 @@ gsutil cp -p gs://mit-driverless-open-source/yolov3-training/train.csv ./dataset
 gsutil cp -p gs://mit-driverless-open-source/yolov3-training/validate.csv ./dataset/
 ```
 ###### 1.1.3 Initial weights file:
+full YoloV3 initial weights:
 ```
 gsutil cp -p  gs://mit-driverless-open-source/yolov3-training/sample-yolov3.weights ./dataset/
+```
+
+tiny YoloV3 initial weights:
+```
+gsutil cp =p gs://mit-driverless-open-source/yolov3-training/sample-yolov3-tiny.weights ./dataset/
 ```
 
 ##### Download manually (Optional)
@@ -61,7 +67,9 @@ You can download image dataset and label csv from the link below and unzip them 
 
 [Validate label csv](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/validate.csv?authuser=1)
 
-[Initial weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
+[Initial YOLOv3 weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3.weights?authuser=1)
+
+[Initial YOLOv3-tiny weights file](https://storage.cloud.google.com/mit-driverless-open-source/yolov3-training/sample-yolov3-tiny.weights?authuser=1)
 
 #### 1.2 Environment Setup (Optional)
 
@@ -76,6 +84,8 @@ python3 train.py --model_cfg=model_cfg/yolo_baseline.cfg --weights_path=dataset/
 ```
 
 Once you've finished training, you can access the weights file in `./outputs/`
+
+(Optional: We also provide tiny yolo cfg, with no evaluation metrics available)
 
 ### 3.Inference
 
