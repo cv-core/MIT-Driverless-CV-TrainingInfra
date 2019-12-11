@@ -52,3 +52,7 @@ Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
 </p>
 
 #### RektNet Dataset with *Formula Student Driverless Standard* is open-sourced ***[here](https://storage.cloud.google.com/mit-driverless-open-source/RektNet_Dataset.zip?authuser=1)***
+
+## License
+
+This repository is released under the MIT license. See [LICENSE](LICENSE) for additional details.
