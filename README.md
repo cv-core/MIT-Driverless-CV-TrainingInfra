@@ -1,7 +1,7 @@
 # Accurate Low Latency Visual Perception for Autonomous Racing: Challenges Mechanisms and Practical Solutions
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/22118253/69769345-7966eb80-1152-11ea-8d51-ed4c1726127f.png" width="600">
+<img src="https://user-images.githubusercontent.com/22118253/70950893-e2de6980-202f-11ea-9a16-399579926ee5.gif" width="800">
 </p>
 
 This is the Pytorch side code for the accurate low latency visual perception system introduced by *[Kieran Strobel, Sibo Zhu, Raphael Chang, and Skanda Koppula. "Accurate Low Latency Visual Perception for Autonomous Racing: Challenges Mechanisms and Practical Solutions" ](https://static1.squarespace.com/static/5b79970e3c3a53723fab8cfc/t/5dd31c1eb16d2c02ed66408d/1574116397888/Accurate__Low_Latency_Visual_Perception_for_Autonomous_Racing__Challenges__Mechanisms__and_Practical_Solutions_.pdf)*. If you use the code, please cite the paper:
@@ -14,9 +14,7 @@ Abstract
 
 >Autonomous racing provides the opportunity to test safety-critical perception pipelines at their limit. This paper describes the practical challenges and solutions to applying state-of-the-art computer vision algorithms to build a low-latency, high-accuracy perception system for DUT18 Driverless(DUT18D), a 4WD electric race car with podium finishes at all  Formula Driverless competitions for which it raced. The key components of DUT18D include  YOLOv3-based object detection, pose estimation and time synchronization on its dual stereovision/monovision camera setup. We highlight modifications required to adapt perception  CNNs to racing domains, improvements to loss functions used for pose estimation, and methodologies for sub-microsecond camera synchronization among other improvements. We perform  an extensive experimental evaluation of the system, demonstrating its accuracy and low-latency  in real-world racing scenarios.
 
-<p align="center">
-<img src="https://user-images.githubusercontent.com/22118253/70950893-e2de6980-202f-11ea-9a16-399579926ee5.gif" width="600">
-</p>
+
 
 ## CVC-YOLOv3
 
@@ -48,7 +46,7 @@ RektNet is the MIT Driverless Custom Key Points Detection Network.
 </p>
 
 RektNet takes in bounding boxes outputed from CVC-YOLOv3 and outputs seven key points on the traffic cone, which is responsible for depth estimation of traffic cones on the 3D map. 
-
+v
 Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
 
 <p align="center">
@@ -59,4 +57,5 @@ Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
 
 ## License
 
-This repository is released under the MIT license. See [LICENSE](LICENSE) for additional details.
+This repository is released under the MIT license. See [LICENSE](LICENSE) for additional dethttps://user-images.githubusercontent.com/22118253/70950893-e2de6980-202f-11ea-9a16-399579926ee5.gif
+ails.
