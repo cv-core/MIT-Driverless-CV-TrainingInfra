@@ -175,7 +175,7 @@ def detect(target_path,
             for i in tqdm(files,desc='Doing Single Image Detection'):
                 filename=detection_tmp_path + i
                 
-                detection_path = single_img_detect(target_path=target_filepath,output_path=output_path,mode=mode,model=model,device=device,conf_thres=conf_thres,nms_thres=nms_thres)
+                detection_path = single_img_detect(target_path=filename,output_path=output_path,mode=mode,model=model,device=device,conf_thres=conf_thres,nms_thres=nms_thres)
                 #reading each files
                 img = cv2.imread(detection_path)
                 height, width, layers = img.shape
