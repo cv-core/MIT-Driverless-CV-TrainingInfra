@@ -61,4 +61,4 @@ Our final *Depth estimation error VS Distance* graph (The **Monocular** part):
 
 ## License
 
-This repository is released under the MIT license. See [LICENSE](LICENSE) for additional details.
+This repository is released under the Apache-2.0 license. See [LICENSE](LICENSE) for additional details.
