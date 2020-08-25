@@ -68,6 +68,7 @@ def vis_tensor_and_save(image, h, w, tensor_output, image_name, output_uri):
         raise Exception("Could not write image")    #opencv won't give you error for incorrect image but return False instead, so we have to do it manually
     
     os.rename(os.path.join(vis_tmp_path, image_name + "_inference.jpg"), os.path.join(output_uri, image_name + "_inference.jpg"))
+    return image
 
 def prep_image(image,target_image_size):
     h,w,_ = image.shape
