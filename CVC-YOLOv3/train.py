@@ -270,7 +270,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=7, help='size of each image batch')
     parser.add_argument('--optimizer_pick', type=str, default="Adam", help='choose optimizer between Adam and SGD')
     parser.add_argument('--model_cfg', type=str, help='cfg file path',required=True)
-    parser.add_argument('--weights_path', type=str, help='initial weights path',required=True)
+    parser.add_argument('--weights_path', type=str, help='initial weights path',default="sample-yolov3.weights")
     parser.add_argument('--output_path', type=str, help='output weights path, by default we will create a folder based on current system time and name of your cfg file',default="automatic")
     parser.add_argument('--dataset_path', type=str, help='path to image dataset',default="dataset/YOLO_Dataset/")
     parser.add_argument('--num_epochs', type=int, default=2048, help='maximum number of epochs')
