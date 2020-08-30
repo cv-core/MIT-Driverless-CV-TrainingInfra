@@ -51,6 +51,9 @@ Once you've finished training, you can access the weights file in `./outputs/`
 
 ### 3.Inference
 
+#### To download our pretrained Keypoints weights for *Formula Student Standard*, click ***[here](https://storage.googleapis.com/mit-driverless-open-source/pretrained_kpt.pt)***
+
+
 ```
 python3 detect.py --model=<path to .pt weights file> --img=<path to an image>
 ```

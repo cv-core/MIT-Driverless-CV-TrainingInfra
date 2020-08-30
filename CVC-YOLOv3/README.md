@@ -89,6 +89,8 @@ Once you've finished training, you can access the weights file in `./outputs/`
 
 ### 3.Inference
 
+#### To download our pretrained YOLO weights for *Formula Student Standard*, click ***[here](https://storage.googleapis.com/mit-driverless-open-source/pretrained_yolo.weights)***
+
 ```
 python3 detect.py --model_cfg=<path to cfg file> --target_path=<path to an image or video> --weights_path=<path to your trained weights file>
 ```
