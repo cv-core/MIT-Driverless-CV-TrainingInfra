@@ -1,5 +1,5 @@
 opencv_python==4.1.0.25
-numpy==1.16.4
+numpy==1.22.0
 torch==1.1.0
 torchvision==0.3.0
 pandas==0.24.2
